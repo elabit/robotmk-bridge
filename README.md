@@ -175,12 +175,22 @@ Most of the time, handlers want to run the other test tool through command line.
 
 # Developing Oxygen
 
+## Setup
+
 Clone the Oxygen repository to the environment where you want to the run the tool.
 
 Oxygen requires a set of dependencies to be installed. Dependencies are listed in the `requirements.txt` file:
 ```
 $ pip install -r requirements.txt
 ```
+
+Also install the package itself as editable: 
+
+```
+$ pip install -e .
+```
+
+## Tasks
 
 Oxygen uses task runner tool [`invoke`](http://www.pyinvoke.org/) to run tests, build the project, etc.
 
@@ -190,6 +200,15 @@ $ invoke --list
 ```
 
 and the task file [`tasks.py`](https://github.com/eficode/robotframework-oxygen/blob/master/tasks.py).
+
+### Tests 
+
+```
+$ invoke test
+```
+
+(Metadata test in Test explorer will stay red)
+
 
 
 # License
