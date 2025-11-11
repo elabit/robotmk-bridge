@@ -61,11 +61,12 @@ class BaseHandler(object):
             # trigger; they will become teardown keywords.
             setup_keywords = test_keywords[:curr]
             teardown_keywords = test_keywords[(curr+1):]
+            break
 
-            self._report_oxygen_run(keyword, setup_keywords, teardown_keywords)
+        self._report_rmkbridge_run(keyword, setup_keywords, teardown_keywords)
 
 
-    def _report_oxygen_run(self, keyword, setup_keywords, teardown_keywords):
+    def _report_rmkbridge_run(self, keyword, setup_keywords, teardown_keywords):
         '''
         keyword: The trigger keyword for this handler
         setup_keywords: The keywords preceding the trigger
@@ -79,7 +80,7 @@ class BaseHandler(object):
             setup_start = setup_keywords[0].starttime
             setup_end = setup_keywords[-1].endtime
             setup_keyword = self._interface.result.create_wrapper_keyword(
-                'Oxygen Setup',
+                'RobotmkBridge Setup',
                 setup_start,
                 setup_end,
                 True,
@@ -89,7 +90,7 @@ class BaseHandler(object):
             teardown_start = teardown_keywords[0].starttime
             teardown_end = teardown_keywords[-1].endtime
             teardown_keyword = self._interface.result.create_wrapper_keyword(
-                'Oxygen Teardown',
+                'RobotmkBridge Teardown',
                 teardown_start,
                 teardown_end,
                 False,
@@ -100,8 +101,8 @@ class BaseHandler(object):
     def _build_results(self, keyword, setup_keyword, teardown_keyword):
         '''
         keyword: The trigger keyword
-        setup_keyword: The special oxygen setup wrapper
-        teardown_keyword: The special oxygen teardown wrapper
+        setup_keyword: The special RobotmkBridge setup wrapper
+        teardown_keyword: The special RobotmkBridge teardown wrapper
         '''
         accepted_params = signature(self.parse_results).parameters
         accepted_params_max = len(accepted_params)
@@ -151,8 +152,8 @@ class BaseHandler(object):
 
         self._inject_suite_report(test, result_suite)
 
-    def _validate(self, oxygen_result_dict):
-        validate_with_deprecation_warning(oxygen_result_dict, self)
+    def _validate(self, bridge_result_dict):
+        validate_with_deprecation_warning(bridge_result_dict, self)
 
     def _inject_suite_report(self, test, result_suite):
         '''Add the given suite to the parent suite of the test case.

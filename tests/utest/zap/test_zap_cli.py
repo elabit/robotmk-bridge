@@ -5,16 +5,16 @@ from unittest.mock import ANY, Mock, create_autospec, patch
 
 from robot.running.model import TestSuite
 
-from oxygen.oxygen import OxygenCLI
+from rmkbridge.rmkbridge import RobotmkBridgeCLI
 from ..helpers import RESOURCES_PATH
 
 
-class TestOxygenZapCLI(TestCase):
+class TestRobotmkBridgeZapCLI(TestCase):
     ZAP_XML = str(RESOURCES_PATH / "zap" / "zap.xml")
 
     def setUp(self):
-        self.cli = OxygenCLI()
-        self.handler = self.cli.handlers["oxygen.zap"]
+        self.cli = RobotmkBridgeCLI()
+        self.handler = self.cli.handlers["rmkbridge.zap"]
         self.expected_suite = create_autospec(TestSuite)
         self.mock = Mock()
         self.mock.running.build_suite = Mock(return_value=self.expected_suite)
@@ -41,11 +41,11 @@ class TestOxygenZapCLI(TestCase):
             },
         )
 
-    @patch("oxygen.oxygen.RobotInterface")
+    @patch("rmkbridge.rmkbridge.RobotInterface")
     def test_cli_run(self, mock_robot_iface):
         mock_robot_iface.return_value = self.mock
 
-        cmd_args = f"oxygen oxygen.zap {self.ZAP_XML}"
+        cmd_args = f"rmkbridge rmkbridge.zap {self.ZAP_XML}"
         with patch.object(sys, "argv", cmd_args.split()):
             self.cli.run()
 
@@ -61,12 +61,12 @@ class TestOxygenZapCLI(TestCase):
             stdout=ANY,
         )
 
-    @patch("oxygen.oxygen.RobotInterface")
+    @patch("rmkbridge.rmkbridge.RobotInterface")
     def test_cli_run_with_levels(self, mock_robot_iface):
         mock_robot_iface.return_value = self.mock
 
         cmd_args = (
-            f"oxygen oxygen.zap {self.ZAP_XML} --accepted-risk-level 3"
+            f"rmkbridge rmkbridge.zap {self.ZAP_XML} --accepted-risk-level 3"
             " --required-confidence-level 3"
         )
         with patch.object(sys, "argv", cmd_args.split()):
@@ -75,22 +75,22 @@ class TestOxygenZapCLI(TestCase):
         self.assertEqual(self.handler._config["accepted_risk_level"], 3)
         self.assertEqual(self.handler._config["required_confidence_level"], 3)
 
-    @patch("oxygen.oxygen.RobotInterface")
+    @patch("rmkbridge.rmkbridge.RobotInterface")
     def test_cli_run_with_accepted_risk_level(self, mock_robot_iface):
         mock_robot_iface.return_value = self.mock
 
-        cmd_args = f"oxygen oxygen.zap {self.ZAP_XML} --accepted-risk-level 3"
+        cmd_args = f"rmkbridge rmkbridge.zap {self.ZAP_XML} --accepted-risk-level 3"
         with patch.object(sys, "argv", cmd_args.split()):
             self.cli.run()
 
         self.assertEqual(self.handler._config["accepted_risk_level"], 3)
         self.assertEqual(self.handler._config["required_confidence_level"], 1)
 
-    @patch("oxygen.oxygen.RobotInterface")
+    @patch("rmkbridge.rmkbridge.RobotInterface")
     def test_cli_run_with_required_confidence_level(self, mock_robot_iface):
         mock_robot_iface.return_value = self.mock
 
-        cmd_args = f"oxygen oxygen.zap {self.ZAP_XML} --required-confidence-level 3"
+        cmd_args = f"rmkbridge rmkbridge.zap {self.ZAP_XML} --required-confidence-level 3"
         with patch.object(sys, "argv", cmd_args.split()):
             self.cli.run()
 

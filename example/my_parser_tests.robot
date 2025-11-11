@@ -1,5 +1,5 @@
 *** Settings ***
-Library    oxygen.OxygenLibrary
+Library    rmkbridge.RobomkBridgeLibrary
 
 *** Test Cases ***
 My parser's tests should succeed

@@ -4,20 +4,17 @@ handlers return is planned to just raise a deprecation warning.
 
 After 1.0 -- ie. a backwards-incompatible release -- we should turn deprecation
 warning to actually start failing. See issue [2].
-
-[1| https://github.com/eficode/robotframework-oxygen/issues/43
-[2] https://github.com/eficode/robotframework-oxygen/issues/45
 '''
 from unittest import TestCase
 from unittest.mock import patch
-from oxygen.base_handler import BaseHandler
-from oxygen.oxygen import OxygenCLI
+from rmkbridge.base_handler import BaseHandler
+from rmkbridge.rmkbridge import RobotmkBridgeCLI
 
 from ..helpers import get_config, MINIMAL_SUITE_DICT
 
 class TestDeprecationWarningWhenValidating(TestCase):
     def setUp(self):
-        self.cli = OxygenCLI()
+        self.cli = RobotmkBridgeCLI()
 
     def _validate_warning_msg(self, warning, module_name):
         warning_message = str(warning.warning)
@@ -27,14 +24,14 @@ class TestDeprecationWarningWhenValidating(TestCase):
             self.assertIn(expected, warning_message)
 
     # def test_warning_about_invalid_result(self):
-    #     handler = BaseHandler(get_config()['oxygen.junit'])
+    #     handler = BaseHandler(get_config()['rmkbridge.junit'])
 
     #     with self.assertWarns(UserWarning) as warning:
     #         handler._validate({})
 
-    #     self._validate_warning_msg(warning, 'oxygen.base_handler')
+    #     self._validate_warning_msg(warning, 'rmkbridge.base_handler')
 
-    # @patch('oxygen.oxygen.RobotInterface')
+    # @patch('rmkbridge.rmkbridge.RobotInterface')
     # def test_warning_about_invalid_result_in_CLI(self, mock_iface):
     #     with self.assertWarns(UserWarning) as warning:
     #         self.cli.convert_to_robot_result({

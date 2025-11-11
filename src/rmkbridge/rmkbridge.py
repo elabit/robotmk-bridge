@@ -14,7 +14,7 @@ from robot.errors import DataError
 from yaml import load, FullLoader, dump as dump_yaml
 
 from .config import CONFIG_FILE, ORIGINAL_CONFIG_FILE
-from .errors import (OxygenException,
+from .errors import (RobotmkBridgeException,
                      InvalidConfigurationException,
                      ResultFileNotFoundException)
 from .robot_interface import RobotInterface
@@ -22,9 +22,9 @@ from .utils import validate_with_deprecation_warning
 from .version import VERSION
 
 
-class OxygenCore(object):
-    '''OxygenCore collects shared faculties used by the actual classes that do
-    something'''
+class RobotmkBridgeCore(object):
+    '''RobotmkBridgeCore collects shared faculties used by the actual classes
+    that do something'''
 
     __version__ = VERSION
 
@@ -62,9 +62,9 @@ class OxygenCore(object):
             self._handlers[tool_name] = handler
 
 
-class OxygenVisitor(OxygenCore, ResultVisitor):
-    '''OxygenVisitor goes over Robot Framework ExcutionResult object,
-    transforming test cases that use keywords of OxygenLibrary to parsed test
+class RobotmkBridgeVisitor(RobotmkBridgeCore, ResultVisitor):
+    '''RobotmkBridgeVisitor goes over Robot Framework ExcutionResult object,
+    transforming test cases that use keywords of RobotmkBridgeLibrary to parsed test
     results from other tools.
 
     Read up on what is Robot Framework SuiteVisitor:
@@ -88,19 +88,20 @@ class OxygenVisitor(OxygenCore, ResultVisitor):
                                                    e,
                                                    e.__traceback__))
                           for e in failures]
-            raise OxygenException('Multiple failures:\n{}'.format(
+            raise RobotmkBridgeException('Multiple failures:\n{}'.format(
                 '\n'.join(tracebacks)))
 
 
-class listener(object):
-    '''listener passes data from test execution to where results are written.
+class RobotmkBridgeListener(object):
+    '''RobotmkBridgeListener passes data from test execution to where results
+    are written.
 
-    listener object is used during test execution to get dynamically data
-    from OxygenLibrary keywords. After test execution is finished, listener
-    will initiate OxygenVisitor, replacing test cases that used OxygenLibrary
-    keywords with parsed test results from other test tools. In the end, the new
-    output is written on the disk for rebot to take over and generate Robot
-    Framework log and report normally
+    The listener object is used during test execution to get dynamic data
+    from RobotmkBridgeLibrary keywords. After test execution finishes, the
+    listener will initiate RobotmkBridgeVisitor, replacing test cases that
+    used RobotmkBridgeLibrary keywords with parsed test results from other
+    test tools. In the end, the new output is written on the disk for rebot to
+    take over and generate Robot Framework log and report normally.
     '''
 
     ROBOT_LISTENER_API_VERSION = 2
@@ -111,7 +112,7 @@ class listener(object):
     def end_test(self, name, attributes):
         try:
             lib = BuiltIn()._get_context().namespace.get_library_instance(
-                'oxygen.OxygenLibrary')
+                'rmkbridge.RobotmkBridgeLibrary')
             if lib:
                 self.run_time_data[attributes['longname']] = lib.data
         except DataError as _:
@@ -119,19 +120,23 @@ class listener(object):
 
     def output_file(self, path):
         result = ExecutionResult(path)
-        result.visit(OxygenVisitor(self.run_time_data))
+        result.visit(RobotmkBridgeVisitor(self.run_time_data))
         result.save()
 
-class OxygenLibrary(OxygenCore):
-    '''Oxygen is a tool to consolidate different test tools' reports together
-    as a single Robot Framework log and report. ``oxygen.OxygenLibrary``
-    enables you to write acceptance tests that run your other test tools, parse
-    their results and include them into the Robot Framework reporting.
 
-    In addition, you can use the `oxygen command line interface`_ to transform
-    an existing test tool report to a single Robot Framework ``output.xml``
-    which you can combine together with other Robot Framework ``output.xml``'s
-    with Robot Frameworks built-in tool rebot_.
+# Backwards compatibility for listener path references
+listener = RobotmkBridgeListener
+
+class RobotmkBridgeLibrary(RobotmkBridgeCore):
+    '''RobotmkBridge consolidates different test tools' reports together as a
+    single Robot Framework log and report. ``rmkbridge.RobotmkBridgeLibrary``
+    enables you to write acceptance tests that run your other test tools,
+    parse their results and include them into the Robot Framework reporting.
+
+    In addition, you can use the `RobotmkBridge command line interface`_ to
+    transform an existing test tool report to a single Robot Framework
+    ``output.xml`` which you can combine together with other Robot Framework
+    ``output.xml``'s with Robot Frameworks built-in tool rebot_.
 
     Acceptance tests that run other test tools might look something like this:
 
@@ -169,27 +174,27 @@ class OxygenLibrary(OxygenCore):
     cases for quality dashboards, if the test tool does not provide this
     themselves.
 
-    Extending oxygen.OxygenLibrary
+    Extending rmkbridge.RobotmkBridgeLibrary
     ------------------------------
 
-    ``oxygen.OxygenLibrary`` is designed to be extensible with writing your
-    own *handler* for Oxygen to use. It is expected that your *handler* also
+    ``rmkbridge.RobotmkBridgeLibrary`` is designed to be extensible with
+    writing your own *handler* for RobotmkBridge to use. It is expected that your *handler* also
     provides a keyword for running the test tool you want to provide
-    integration for. Since ``oxygen.OxygenLibrary`` is a `dynamic library`_,
+    integration for. Since ``rmkbridge.RobotmkBridgeLibrary`` is a `dynamic library`_,
     it will also know how to run your *handler's* keyword.
 
     Keyword documentation should be provided as per `normal way one does with
     Robot Framework libraries`_. The documentation syntax is expected to be
     reStructuredText_.
 
-    After editing Oxygen's ``config.yml`` to `add your own handler`_, you can
+    After editing RobotmkBridge's ``config.yml`` to `add your own handler`_, you can
     regenerate this library documentation to show your keyword with command:
 
     .. code:: bash
 
-        $ python -m robot.libdoc OxygenLibrary MyOxygenLibrary.html
+        $ python -m robot.libdoc RobotmkBridgeLibrary MyRobotmkBridgeLibrary.html
 
-    .. _oxygen command line interface: http://github.com/eficode/robotframework-oxygen#using-from-command-line
+    .. _RobotmkBridge command line interface: http://github.com/eficode/robotframework-oxygen#using-from-command-line
     .. _rebot: http://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#post-processing-outputs
     .. _dynamic library: http://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#dynamic-library-api
     .. _normal way one does with Robot Framework libraries: http://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#documenting-libraries
@@ -208,7 +213,7 @@ class OxygenLibrary(OxygenCore):
             return next(filter(lambda h: h.keyword == name,
                                self.handlers.values()))
         except StopIteration:
-            raise OxygenException('No handler for keyword "{}"'.format(name))
+            raise RobotmkBridgeException('No handler for keyword "{}"'.format(name))
 
     def get_keyword_names(self):
         return list(handler.keyword for handler in self.handlers.values())
@@ -229,10 +234,10 @@ class OxygenLibrary(OxygenCore):
         return [str(param) for param in method_sig.parameters.values()]
 
 
-class OxygenCLI(OxygenCore):
+class RobotmkBridgeCLI(RobotmkBridgeCore):
     '''
-    OxygenCLI is a command line interface to transform one test result file to
-    corresponding Robot Framework output.xml
+    RobotmkBridgeCLI is a command line interface to transform one test result
+    file to a corresponding Robot Framework output.xml
     '''
     MAIN_LEVEL_CLI_ARGS = {
         # we intentionally define `dest` here so we can filter arguments later
@@ -242,20 +247,20 @@ class OxygenCLI(OxygenCore):
                          'metavar': 'FILE',
                          'dest': 'add_config',
                          'help': ('path to YAML file whose content is '
-                                  'appended to existing Oxygen handler '
+                                  'appended to existing RobotmkBridge handler '
                                   'configuration')},
         '--reset-config': {'action': 'store_true',
                            'dest': 'reset_config',
-                           'help': ('resets the Oxygen handler '
+                           'help': ('resets the RobotmkBridge handler '
                                     'configuration to a pristine, '
                                     'as-freshly-installed version')},
         '--print-config': {'action': 'store_true',
                            'dest': 'print_config',
-                           'help': ('prints current Oxygen handler '
+                           'help': ('prints current RobotmkBridge handler '
                                     'configuration')}
     }
     def add_arguments(self, parser):
-        # Add version number here to the arguments as it depends on OxygenCLI
+        # Add version number here to the arguments as it depends on RobotmkBridgeCLI
         # being initiated already
         self.MAIN_LEVEL_CLI_ARGS['--version']['version'] = \
             f'%(prog)s {self.__version__}'
@@ -291,8 +296,8 @@ class OxygenCLI(OxygenCore):
     @staticmethod
     def reset_config():
         copy_file(ORIGINAL_CONFIG_FILE, CONFIG_FILE)
-        OxygenCLI().load_config(CONFIG_FILE)
-        print('Oxygen handler configuration reset!')
+        RobotmkBridgeCLI().load_config(CONFIG_FILE)
+        print('RobotmkBridge handler configuration reset!')
 
     def print_config(self):
         print(f'Using config file: {CONFIG_FILE}')
@@ -310,7 +315,7 @@ class OxygenCLI(OxygenCore):
                         stdout=StringIO())
 
     def run(self):
-        parser = ArgumentParser(prog='oxygen')
+        parser = ArgumentParser(prog='rmkbridge')
         self.add_arguments(parser)
         args = self.parse_args(parser)
         match args:
@@ -338,9 +343,9 @@ def main():
     Also used in __main__.py
     '''
     if '--reset-config' in sys.argv:
-        OxygenCLI.reset_config()
+        RobotmkBridgeCLI.reset_config()
         sys.exit(0)
-    OxygenCLI().run()
+    RobotmkBridgeCLI().run()
 
 if __name__ == '__main__':
     main()

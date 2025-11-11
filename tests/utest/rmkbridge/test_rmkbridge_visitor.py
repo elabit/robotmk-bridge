@@ -1,24 +1,24 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from oxygen.oxygen import OxygenVisitor
-from oxygen import errors as oxygen_errors
+from rmkbridge.rmkbridge import RobotmkBridgeVisitor
+from rmkbridge import errors as rmkbridge_errors
 
 
 class CustomUserException(Exception):
     pass
 
 
-class TestOxygen(TestCase):
+class TestRobotmkBridge(TestCase):
     def test_multiple_errors_are_reported(self):
         m = Mock()
         m.check_for_keyword.side_effect = [
             TypeError('different'),
-            oxygen_errors.JUnitHandlerException('kinds of'),
-            oxygen_errors.OxygenException('exceptions'),
+            rmkbridge_errors.JUnitHandlerException('kinds of'),
+            rmkbridge_errors.RobotmkBridgeException('exceptions'),
             CustomUserException('for fun and profit')
         ]
-        oxy = OxygenVisitor('fakedata')
+        oxy = RobotmkBridgeVisitor('fakedata')
         oxy._handlers = {
             'fake_handler': m,
             'another_fake': m,
@@ -26,7 +26,7 @@ class TestOxygen(TestCase):
             'and fourth': m
         }
 
-        with self.assertRaises(oxygen_errors.OxygenException) as ex:
+        with self.assertRaises(rmkbridge_errors.RobotmkBridgeException) as ex:
             oxy.visit_test(Mock())
 
         exception_message = str(ex.exception)
@@ -39,7 +39,7 @@ class TestOxygen(TestCase):
     def test_single_exception_raised_directly(self):
         m = Mock()
         m.check_for_keyword.side_effect = [CustomUserException('single')]
-        oxy = OxygenVisitor('fakedata')
+        oxy = RobotmkBridgeVisitor('fakedata')
         oxy._handlers = {'fake_handler': m}
 
         with self.assertRaises(CustomUserException) as ex:

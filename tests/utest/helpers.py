@@ -8,26 +8,26 @@ from tempfile import mkstemp
 from robot.api import ExecutionResult
 from yaml import FullLoader, load
 
-from oxygen.oxygen_handler_result import OxygenKeywordDict, OxygenTestCaseDict
+from rmkbridge.rmkbridge_handler_result import RobotmkBridgeKeywordDict, RobotmkBridgeTestCaseDict
 
 TEST_CONFIG = '''
-oxygen.junit:
+rmkbridge.junit:
   handler: JUnitHandler
   keyword: run_junit
   tags:
     - JUNIT
     - EXTRA_JUNIT_CASE
-oxygen.gatling:
+rmkbridge.gatling:
   handler: GatlingHandler
   keyword: run_gatling
   tags: GATLING
-oxygen.zap:
+rmkbridge.zap:
   handler: ZAProxyHandler
   keyword: run_zap
   tags: ZAP
   accepted_risk_level: 2
   required_confidence_level: 1
-oxygen.my_dummy_handler:
+rmkbridge.my_dummy_handler:
   handler: MyDummyHandler
   keyword: run_my_dummy_handler
   tags: MY_DUMMY_HANDLER
@@ -70,12 +70,12 @@ class _ListSubclass(list):
     pass
 
 
-class _KwSubclass(OxygenKeywordDict):
+class _KwSubclass(RobotmkBridgeKeywordDict):
     '''Used in test cases'''
     pass
 
 
-class _TCSubclass(OxygenTestCaseDict):
+class _TCSubclass(RobotmkBridgeTestCaseDict):
     '''Used in test cases'''
     pass
 

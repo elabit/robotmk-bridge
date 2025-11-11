@@ -1,4 +1,4 @@
-from oxygen import BaseHandler
+from rmkbridge import BaseHandler
 
 class MyDummyMetadataHandler(BaseHandler):
     def run_metadata_dummy_handler(self, result_file):

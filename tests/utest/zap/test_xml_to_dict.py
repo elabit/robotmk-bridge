@@ -1,7 +1,7 @@
 from unittest import TestCase
 from xml.etree import ElementTree as ET
 
-from oxygen.zap import ZAProxyHandler
+from rmkbridge.zap import ZAProxyHandler
 from ..helpers import get_config
 
 
@@ -15,7 +15,7 @@ class TestXmlToDict(TestCase):
         return xml_head
 
     def setUp(self):
-        self.object = ZAProxyHandler(get_config()['oxygen.zap'])
+        self.object = ZAProxyHandler(get_config()['rmkbridge.zap'])
         self._xml = self._create_example_xml()
 
     def test_converts_xml(self):
