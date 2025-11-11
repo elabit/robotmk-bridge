@@ -279,33 +279,44 @@ class RobotResultInterface(object):
         time_object = datetime.strptime(
             timestamp,
             time_format,
-        )
+        ).replace(tzinfo=timezone.utc)
 
-        tz_delta = self.get_timezone_delta()
-
-        milliseconds = ((time_object + tz_delta).timestamp() * 1000)
-
-        return milliseconds
+        return time_object.timestamp() * 1000
 
 
     def ms_to_timestamp(self, milliseconds):
-        tz_delta = self.get_timezone_delta()
+        epoch = datetime.fromtimestamp(0, tz=timezone.utc)
+        truncated_seconds = int(milliseconds / 1000)
+        time_object = datetime.fromtimestamp(truncated_seconds, tz=timezone.utc)
 
-        time_object = datetime.fromtimestamp(int(milliseconds / 1000)) - tz_delta
-        if time_object.year < 1970:
-            time_object = datetime.fromtimestamp(0)
-        # fromtimestamp() loses milliseconds, add them back
+        if time_object < epoch:
+            time_object = epoch
+
         milliseconds_delta = timedelta(milliseconds=(milliseconds % 1000))
-        time_object = (time_object + milliseconds_delta)
+        time_object = time_object + milliseconds_delta
+
+        if time_object < epoch:
+            time_object = epoch
 
         time_format = self.get_time_format()
 
         return time_object.strftime(time_format)
 
 
-    def get_timezone_delta(self):
+    def get_timezone_delta(self, reference_time=None):
         local_zone = datetime.now(timezone.utc).astimezone().tzinfo
-        return local_zone.utcoffset(None)
+
+        if reference_time is None:
+            reference_time = datetime.now(local_zone)
+        elif reference_time.tzinfo is None:
+            reference_time = reference_time.replace(tzinfo=local_zone)
+        else:
+            reference_time = reference_time.astimezone(local_zone)
+
+        tz_delta = reference_time.utcoffset()
+        if tz_delta is None:
+            return timedelta()
+        return tz_delta
 
 
     def get_keywords_status(self, *keywords):

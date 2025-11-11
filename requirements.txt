@@ -1,4 +1,4 @@
-robotframework>=3.0.4
+robotframework<7
 junitparser==2.0
 PyYAML>=3.13
 pydantic>=2.4.2
