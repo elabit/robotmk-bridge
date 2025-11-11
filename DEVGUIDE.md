@@ -70,11 +70,11 @@ Let's create `__init__.py`  to our `locustenv/locusthandler` folder. Next we can
 import json
 import csv
 
-from oxygen import BaseHandler
+from rmkbridge import BaseHandler
 from robot.api import logger
 
-from oxygen.errors import SubprocessException
-from oxygen.utils import run_command_line, validate_path
+from rmkbridge.errors import SubprocessException
+from rmkbridge.utils import run_command_line, validate_path
 
 
 class LocustHandler(BaseHandler):
@@ -237,7 +237,7 @@ Let's write `test.robot` file to `locustenv/locusthandler` folder which contains
 ```RobotFramework
 
 *** Settings ***
-Library   oxygen.OxygenLibrary
+Library   rmkbridge.RobotmkBridgeLibrary
 Library   OperatingSystem
 
 *** Variables ***
@@ -421,11 +421,11 @@ Let's change the functionality of `locusthandler/locusthandler.py`:
 import json
 import csv
 
-from oxygen import BaseHandler
+from rmkbridge import BaseHandler
 from robot.api import logger
 
-from oxygen.errors import SubprocessException
-from oxygen.utils import run_command_line, validate_path
+from rmkbridge.errors import SubprocessException
+from rmkbridge.utils import run_command_line, validate_path
 
 
 class LocustHandler(BaseHandler):

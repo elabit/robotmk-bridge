@@ -1,6 +1,6 @@
 import json
 
-from oxygen import BaseHandler
+from rmkbridge import BaseHandler
 
 
 class MyParser(BaseHandler):

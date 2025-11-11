@@ -1,23 +1,23 @@
 from unittest import TestCase
 from unittest.mock import patch, Mock
 
-from oxygen import BaseHandler, OxygenLibrary
-from oxygen.errors import OxygenException
+from rmkbridge import BaseHandler, RobotmkBridgeLibrary
+from rmkbridge.errors import RobotmkBridgeException
 
 from ..helpers import get_config_as_file
 
-class TestOxygenLibrary(TestCase):
+class TestRobotmkBridgeLibrary(TestCase):
     EXPECTED_KEYWORDS = ('run_junit', 'run_gatling', 'run_zap')
 
     def setUp(self):
-        self.lib = OxygenLibrary()
+        self.lib = RobotmkBridgeLibrary()
 
 
     def test_initialization(self):
         for kw in self.EXPECTED_KEYWORDS:
             self.assertIn(kw, self.lib.get_keyword_names())
 
-    @patch('oxygen.config.CONFIG_FILE')
+    @patch('rmkbridge.config.CONFIG_FILE')
     def test_config_is_correct(self, mock_config):
         mock_config.return_value = get_config_as_file()
 
@@ -46,7 +46,7 @@ class TestOxygenLibrary(TestCase):
             self.assertIsInstance(args, list)
             self.assertGreater(len(args), 0)
 
-    @patch('oxygen.OxygenLibrary._fetch_handler')
+    @patch('rmkbridge.RobotmkBridgeLibrary._fetch_handler')
     def test_run_keyword(self, mock_fetch_handler):
         expected_data = {f'{attr}.return_value': 'somefile.ext'
                          for attr in self.EXPECTED_KEYWORDS}
@@ -60,7 +60,7 @@ class TestOxygenLibrary(TestCase):
             self.assertNotNoneOrEmpty(self.lib.data)
 
     def test_run_keyword_should_fail_if_nonexistent_kw_is_called(self):
-        with self.assertRaises(OxygenException) as ex:
+        with self.assertRaises(RobotmkBridgeException) as ex:
             self.lib.run_keyword('nonexistent', [], {})
 
         self.assertIn('No handler for keyword', str(ex.exception))

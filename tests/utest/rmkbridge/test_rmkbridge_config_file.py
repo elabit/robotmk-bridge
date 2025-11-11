@@ -1,8 +1,8 @@
 from unittest import TestCase
 
-from oxygen.config import CONFIG_FILE, ORIGINAL_CONFIG_FILE
+from rmkbridge.config import CONFIG_FILE, ORIGINAL_CONFIG_FILE
 
-class TestOxygenCLIEntryPoints(TestCase):
+class TestRobotmkBridgeCLIEntryPoints(TestCase):
     def test_config_and_config_original_match(self):
         with open(CONFIG_FILE, 'r') as config:
             with open(ORIGINAL_CONFIG_FILE, 'r') as original_config:

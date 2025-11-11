@@ -1,9 +1,9 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from oxygen import listener
+from rmkbridge import listener
 
-class OxygenListenerBasicTests(TestCase):
+class RobotmkBridgeListenerBasicTests(TestCase):
     def setUp(self):
         self.listener = listener()
 
@@ -19,24 +19,24 @@ class OxygenListenerBasicTests(TestCase):
         mock_builtin.return_value = m_builtin
         return m_builtin
 
-    @patch('oxygen.oxygen.BuiltIn')
+    @patch('rmkbridge.rmkbridge.BuiltIn')
     def test_end_test_when_library_was_not_used(self, mock_builtin):
         m = self.mock_lib_instance(mock_builtin, None)
 
         self.listener.end_test('foo', {})
 
-        m._get_context().namespace.get_library_instance.assert_called_once_with('oxygen.OxygenLibrary')
+        m._get_context().namespace.get_library_instance.assert_called_once_with('rmkbridge.RobotmkBridgeLibrary')
         self.assertEqual(self.listener.run_time_data, {})
 
-    @patch('oxygen.oxygen.BuiltIn')
+    @patch('rmkbridge.rmkbridge.BuiltIn')
     def test_end_test_when_library_was_used(self, mock_builtin):
         o = lambda: None
         o.data = 'I do not have a solution, but I do admire the problem'
         m = self.mock_lib_instance(mock_builtin, o)
 
-        self.listener.end_test('oxygen.OxygenLibrary', {'longname': 'hello'})
+        self.listener.end_test('rmkbridge.rmkbridgeLibrary', {'longname': 'hello'})
 
-        m._get_context().namespace.get_library_instance.assert_called_once_with('oxygen.OxygenLibrary')
+        m._get_context().namespace.get_library_instance.assert_called_once_with('rmkbridge.RobotmkBridgeLibrary')
         self.assertEqual(self.listener.run_time_data,
                          {'hello': ('I do not have a solution, but I do '
                                     'admire the problem')})

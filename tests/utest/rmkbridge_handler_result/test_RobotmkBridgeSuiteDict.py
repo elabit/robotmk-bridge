@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from oxygen.errors import InvalidOxygenResultException
-from oxygen.oxygen_handler_result import OxygenSuiteDict, validate_oxygen_suite
+from rmkbridge.errors import InvalidRobotmkBridgeResultException
+from rmkbridge.rmkbridge_handler_result import RobotmkBridgeSuiteDict, validate_rmkbridge_suite
 
 from ..helpers import (MINIMAL_TC_DICT,
                        MINIMAL_SUITE_DICT,
@@ -12,62 +12,62 @@ from .shared_tests import (SharedTestsForName,
                            SharedTestsForKeywordField,
                            SharedTestsForTags)
 
-class TestOxygenSuiteDict(TestCase,
+class TestRobotmkBridgeSuiteDict(TestCase,
                           SharedTestsForName,
                           SharedTestsForKeywordField,
                           SharedTestsForTags):
     def setUp(self):
         self.minimal = MINIMAL_SUITE_DICT
 
-    def test_validate_oxygen_suite_validates_correctly(self):
-        with self.assertRaises(InvalidOxygenResultException):
-            validate_oxygen_suite({})
+    def test_validate_rmkbridge_suite_validates_correctly(self):
+        with self.assertRaises(InvalidRobotmkBridgeResultException):
+            validate_rmkbridge_suite({})
 
-    def test_validate_oxygen_suite_with_minimal_valid(self):
+    def test_validate_rmkbridge_suite_with_minimal_valid(self):
         expected = {
             'name': 'My Suite'
         }
 
-        self.assertEqual(validate_oxygen_suite(expected), expected)
-        self.assertEqual(validate_oxygen_suite(self.minimal), self.minimal)
+        self.assertEqual(validate_rmkbridge_suite(expected), expected)
+        self.assertEqual(validate_rmkbridge_suite(self.minimal), self.minimal)
 
     def valid_inputs_for(self, attribute, *valid_inputs):
         for valid_input in valid_inputs:
-            self.assertTrue(validate_oxygen_suite({**self.minimal,
+            self.assertTrue(validate_rmkbridge_suite({**self.minimal,
                                                    attribute: valid_input}))
 
     def invalid_inputs_for(self, attribute, *invalid_inputs):
         for invalid_input in invalid_inputs:
-            with self.assertRaises(InvalidOxygenResultException):
-                validate_oxygen_suite({**self.minimal, attribute: invalid_input})
+            with self.assertRaises(InvalidRobotmkBridgeResultException):
+                validate_rmkbridge_suite({**self.minimal, attribute: invalid_input})
 
-    def test_validate_oxygen_suite_validates_name(self):
+    def test_validate_rmkbridge_suite_validates_name(self):
         self.shared_test_for_name()
 
-    def test_validate_oxygen_suite_validates_tags(self):
+    def test_validate_rmkbridge_suite_validates_tags(self):
         self.shared_test_for_tags()
 
-    def test_validate_oxygen_suite_validates_setup(self):
+    def test_validate_rmkbridge_suite_validates_setup(self):
         self.shared_test_for_keyword_field('setup')
 
-    def test_validate_oxygen_suite_validates_teardown(self):
+    def test_validate_rmkbridge_suite_validates_teardown(self):
         self.shared_test_for_keyword_field('teardown')
 
-    def test_validate_oxygen_suite_validates_suites(self):
-        class OxygenSuiteDictSubclass(OxygenSuiteDict):
+    def test_validate_rmkbridge_suite_validates_suites(self):
+        class RobotmkBridgeSuiteDictSubclass(RobotmkBridgeSuiteDict):
             pass
         valid_inherited = _ListSubclass()
-        valid_inherited.append(OxygenSuiteDictSubclass(**self.minimal))
+        valid_inherited.append(RobotmkBridgeSuiteDictSubclass(**self.minimal))
 
         self.valid_inputs_for('suites',
                               [],
                               [self.minimal],
                               valid_inherited,
-                              [ OxygenSuiteDictSubclass(**self.minimal) ])
+                              [ RobotmkBridgeSuiteDictSubclass(**self.minimal) ])
 
         self.invalid_inputs_for('suites', None, [ {} ])
 
-    def test_validate_oxygen_suite_validates_tests(self):
+    def test_validate_rmkbridge_suite_validates_tests(self):
         valid_inherited = _ListSubclass()
         valid_inherited.append(_TCSubclass(**MINIMAL_TC_DICT))
         valid_inherited.append(MINIMAL_TC_DICT)
@@ -81,7 +81,7 @@ class TestOxygenSuiteDict(TestCase,
 
         self.invalid_inputs_for('tests', None, [ {} ])
 
-    def test_validate_oxygen_suite_validates_metadata(self):
+    def test_validate_rmkbridge_suite_validates_metadata(self):
         class DictSubclass(dict):
             pass
         inherited_key = _StrSubclass('key')

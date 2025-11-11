@@ -8,7 +8,7 @@ from robot.result.model import (Keyword as RobotKeyword,
 
 from robot.running.model import TestSuite as RobotRunningSuite
 
-from oxygen.robot_interface import RobotInterface, get_keywords_from
+from rmkbridge.robot_interface import RobotInterface, get_keywords_from
 
 EXAMPLE_SUITES = [{
   'name': 'suite1',

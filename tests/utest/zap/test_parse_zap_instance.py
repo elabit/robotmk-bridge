@@ -1,13 +1,13 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from oxygen.zap import ZAProxyHandler
+from rmkbridge.zap import ZAProxyHandler
 from ..helpers import get_config
 
 
 class TestParseZapInstance(TestCase):
     def setUp(self):
-        self.object = ZAProxyHandler(get_config()['oxygen.zap'])
+        self.object = ZAProxyHandler(get_config()['rmkbridge.zap'])
         self.object._parse_zap_site_dict = MagicMock(return_value=None)
         self.params = {}
 

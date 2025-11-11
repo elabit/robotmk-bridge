@@ -6,7 +6,7 @@ class JUnitHandlerException(Exception):
     pass
 
 
-class OxygenException(Exception):
+class RobotmkBridgeException(Exception):
     pass
 
 
@@ -34,5 +34,5 @@ class InvalidConfigurationException(Exception):
     pass
 
 
-class InvalidOxygenResultException(Exception):
+class InvalidRobotmkBridgeResultException(Exception):
     pass

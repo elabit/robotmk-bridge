@@ -4,9 +4,9 @@ from unittest.mock import ANY, create_autospec, Mock, mock_open, patch
 
 from testfixtures import compare
 
-from oxygen.errors import ZAProxyHandlerException
-from oxygen.oxygen_handler_result import validate_oxygen_suite
-from oxygen.zap import ZAProxyHandler
+from rmkbridge.errors import ZAProxyHandlerException
+from rmkbridge.rmkbridge_handler_result import validate_rmkbridge_suite
+from rmkbridge.zap import ZAProxyHandler
 
 from ..helpers import (example_robot_output,
                        get_config,
@@ -14,7 +14,7 @@ from ..helpers import (example_robot_output,
                        suppress_stdout)
 
 ZAP_EXPECTED_OUTPUT = {
- 'name': 'Oxygen ZAProxy Report (2.7.0, Tue, 7 Aug 2018 13:17:56)',
+ 'name': 'RobotmkBridge ZAProxy Report (2.7.0, Tue, 7 Aug 2018 13:17:56)',
  'suites': [{'name': 'Site: http://192.168.50.56:7272', 'tests': []},
             {'name': 'Site: http://localhost:7272',
              'tests': [{'keywords': [{'elapsed': 0.0,
@@ -203,13 +203,13 @@ ZAP_EXPECTED_OUTPUT = {
 
 class ZAPBasicTests(TestCase):
     def setUp(self):
-        self.handler = ZAProxyHandler(get_config()['oxygen.zap'])
+        self.handler = ZAProxyHandler(get_config()['rmkbridge.zap'])
 
     def test_initialization(self):
         self.assertEqual(self.handler.keyword, 'run_zap')
         self.assertEqual(self.handler._tags, ['ZAP'])
 
-    @patch('oxygen.utils.subprocess')
+    @patch('rmkbridge.utils.subprocess')
     def test_running(self, mock_subprocess):
         mock_subprocess.run.return_value = Mock(returncode=0)
         self.handler.run_zap('somefile', 'some command')
@@ -222,7 +222,7 @@ class ZAPBasicTests(TestCase):
         return all(
             subitem in parent_dict.items() for subitem in subdict.items())
 
-    @patch('oxygen.utils.subprocess')
+    @patch('rmkbridge.utils.subprocess')
     def test_running_with_passing_environment_values(self, mock_subprocess):
         mock_subprocess.run.return_value = Mock(returncode=0)
 
@@ -236,7 +236,7 @@ class ZAPBasicTests(TestCase):
         self.assertTrue(self.subdict_in_parent_dict(passed_full_env,
                                                     {'ENV_VAR': 'value'}))
 
-    @patch('oxygen.utils.subprocess')
+    @patch('rmkbridge.utils.subprocess')
     def test_running_fails_correctly(self, mock_subprocess):
         mock_subprocess.run.return_value = Mock(returncode=-1)
         with self.assertRaises(ZAProxyHandlerException):
@@ -244,15 +244,15 @@ class ZAPBasicTests(TestCase):
                                  'some command',
                                  check_return_code=True)
 
-    @patch('oxygen.utils.subprocess')
+    @patch('rmkbridge.utils.subprocess')
     def test_running_does_not_fail_by_default(self, mock_subprocess):
         mock_subprocess.run.return_value = Mock(returncode=-1)
         retval = self.handler.run_zap('somefile', 'some command')
         self.assertEqual(retval, 'somefile')
 
-    @patch('oxygen.zap.ZAProxyHandler._read_results')
-    @patch('oxygen.zap.ZAProxyHandler._parse_zap_dict')
-    @patch('oxygen.zap.validate_path')
+    @patch('rmkbridge.zap.ZAProxyHandler._read_results')
+    @patch('rmkbridge.zap.ZAProxyHandler._parse_zap_dict')
+    @patch('rmkbridge.zap.validate_path')
     def test_parsing(self,
                      mock_validate_path,
                      mock_parse_zap_dict,
@@ -271,7 +271,7 @@ class ZAPBasicTests(TestCase):
 
     def test_parsing_xml(self):
         with patch('builtins.open', mock_open(read_data='<xml />')) as f, \
-            patch('oxygen.zap.validate_path') as mock_validate_path:
+            patch('rmkbridge.zap.validate_path') as mock_validate_path:
             m = create_autospec(Path)
             mock_validate_path.return_value = m
             ret = self.handler.parse_results('somefile')
@@ -284,7 +284,7 @@ class ZAPBasicTests(TestCase):
     def test_parsing_json(self):
         with patch('builtins.open',
                    mock_open(read_data='{"some": "json"}')) as f, \
-            patch('oxygen.zap.validate_path') as mock_validate_path:
+            patch('rmkbridge.zap.validate_path') as mock_validate_path:
 
             m = create_autospec(Path)
             mock_validate_path.return_value = m
@@ -300,7 +300,7 @@ class ZAPBasicTests(TestCase):
     def assertNotNoneOrEmpty(self, str_):
         return str_ is not None and str_ != ''
 
-    @patch('oxygen.zap.ZAProxyHandler._report_oxygen_run')
+    @patch('rmkbridge.zap.ZAProxyHandler._report_rmkbridge_run')
     def test_check_for_keyword(self, mock_report):
         fake_test = example_robot_output().suite.suites[0].tests[4]
         expected_data = {'Atest.Test.My Three Point Fifth Test': 'afile.ext'}
@@ -308,10 +308,10 @@ class ZAPBasicTests(TestCase):
         self.handler.check_for_keyword(fake_test, expected_data)
 
         self.assertEqual(mock_report.call_args[0][0].name,
-                         'oxygen.OxygenLibrary.Run Zap')
+                         'rmkbridge.RobotmkBridgeLibrary.Run Zap')
         self.assertEqual(self.handler.run_time_data, 'afile.ext')
 
     def test_zap_parsing(self):
         retval = self.handler.parse_results(RESOURCES_PATH / 'zap' / 'zap.xml')
         compare(retval, ZAP_EXPECTED_OUTPUT)
-        self.assertTrue(validate_oxygen_suite(retval))
+        self.assertTrue(validate_rmkbridge_suite(retval))

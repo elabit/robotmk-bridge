@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from mock import patch
 
-from oxygen.robot_interface import RobotInterface
+from rmkbridge.robot_interface import RobotInterface
 
 
 class TestMsToTimestamp(TestCase):
@@ -39,12 +39,12 @@ class TestMsToTimestamp(TestCase):
         self.assertEqual(timestamp, expected)
 
     def test_ms_before_epoch_are_reset_to_epoch(self):
-        from oxygen.robot4_interface import RobotResultInterface as RF4ResultIface
+        from rmkbridge.robot4_interface import RobotResultInterface as RF4ResultIface
         with patch.object(RF4ResultIface, 'get_timezone_delta') as m:
             m.return_value = timedelta(seconds=7200)
             self._validate_timestamp(RF4ResultIface())
 
-        from oxygen.robot3_interface import RobotResultInterface as RF3ResultIface
+        from rmkbridge.robot3_interface import RobotResultInterface as RF3ResultIface
         with patch.object(RF3ResultIface, 'get_timezone_delta') as m:
             m.return_value = timedelta(seconds=7200)
             self._validate_timestamp(RF3ResultIface())

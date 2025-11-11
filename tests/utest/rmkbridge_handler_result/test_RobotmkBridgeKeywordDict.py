@@ -1,8 +1,8 @@
 from unittest import TestCase
 
-from oxygen.errors import InvalidOxygenResultException
-from oxygen.oxygen_handler_result import (validate_oxygen_keyword,
-                                          OxygenKeywordDict)
+from rmkbridge.errors import InvalidRobotmkBridgeResultException
+from rmkbridge.rmkbridge_handler_result import (validate_rmkbridge_keyword,
+                                          RobotmkBridgeKeywordDict)
 
 from ..helpers import (MINIMAL_KEYWORD_DICT,
                        _ListSubclass,
@@ -12,39 +12,39 @@ from .shared_tests import (SharedTestsForKeywordField,
                            SharedTestsForTags)
 
 
-class TestOxygenKeywordDict(TestCase,
+class TestRobotmkBridgeKeywordDict(TestCase,
                             SharedTestsForName,
                             SharedTestsForTags,
                             SharedTestsForKeywordField):
     def setUp(self):
         self.minimal = MINIMAL_KEYWORD_DICT
 
-    def test_validate_oxygen_keyword_validates_correctly(self):
-        with self.assertRaises(InvalidOxygenResultException):
-            validate_oxygen_keyword({})
+    def test_validate_rmkbridge_keyword_validates_correctly(self):
+        with self.assertRaises(InvalidRobotmkBridgeResultException):
+            validate_rmkbridge_keyword({})
 
-    def test_validate_oxygen_keyword_with_minimal_valid(self):
+    def test_validate_rmkbridge_keyword_with_minimal_valid(self):
         minimal1 = { 'name': 'somename', 'pass': True }
         minimal2 = { 'name': 'somename', 'pass': False }
 
-        self.assertEqual(validate_oxygen_keyword(minimal1), minimal1)
-        self.assertEqual(validate_oxygen_keyword(minimal2), minimal2)
+        self.assertEqual(validate_rmkbridge_keyword(minimal1), minimal1)
+        self.assertEqual(validate_rmkbridge_keyword(minimal2), minimal2)
 
     def valid_inputs_for(self, attribute, *valid_inputs):
         for valid_input in valid_inputs:
-            self.assertTrue(validate_oxygen_keyword({**self.minimal,
+            self.assertTrue(validate_rmkbridge_keyword({**self.minimal,
                                                      attribute: valid_input}))
 
     def invalid_inputs_for(self, attribute, *invalid_inputs):
         for invalid_input in invalid_inputs:
-            with self.assertRaises(InvalidOxygenResultException):
-                validate_oxygen_keyword({**self.minimal,
+            with self.assertRaises(InvalidRobotmkBridgeResultException):
+                validate_rmkbridge_keyword({**self.minimal,
                                          attribute: invalid_input})
 
-    def test_validate_oxygen_keyword_validates_name(self):
+    def test_validate_rmkbridge_keyword_validates_name(self):
         self.shared_test_for_name()
 
-    def test_validate_oxygen_keyword_validates_pass(self):
+    def test_validate_rmkbridge_keyword_validates_pass(self):
         '''
         Due note that boolean cannot be subclassed in Python:
         https://mail.python.org/pipermail/python-dev/2002-March/020822.html
@@ -52,10 +52,10 @@ class TestOxygenKeywordDict(TestCase,
         self.valid_inputs_for('pass', True, False, 0, 1, 0.0, 1.0)
         self.invalid_inputs_for('pass', [], {}, None, object(), -999, -99.9)
 
-    def test_validate_oxygen_keyword_validates_tags(self):
+    def test_validate_rmkbridge_keyword_validates_tags(self):
         self.shared_test_for_tags()
 
-    def test_validate_oxygen_keyword_validates_elapsed(self):
+    def test_validate_rmkbridge_keyword_validates_elapsed(self):
         class FloatSubclass(float):
             pass
 
@@ -69,7 +69,7 @@ class TestOxygenKeywordDict(TestCase,
 
         self.invalid_inputs_for('elapsed', '', None, object())
 
-    def test_validate_oxygen_keyword_validates_messages(self):
+    def test_validate_rmkbridge_keyword_validates_messages(self):
         valid_inherited = _ListSubclass()
         valid_inherited.append('message')
 
@@ -88,10 +88,10 @@ class TestOxygenKeywordDict(TestCase,
                                 None,
                                 invalid_inherited)
 
-    def test_validate_oxygen_keyword_validates_teardown(self):
+    def test_validate_rmkbridge_keyword_validates_teardown(self):
         self.shared_test_for_keyword_field('teardown')
 
-    def test_validate_oxygen_keyword_validates_keywords(self):
+    def test_validate_rmkbridge_keyword_validates_keywords(self):
         valid_inherited = _ListSubclass()
         valid_inherited.append(_KwSubclass(**self.minimal))
 
@@ -107,7 +107,7 @@ class TestOxygenKeywordDict(TestCase,
         invalid_inherited.append(123)
         self.invalid_inputs_for('keywords', None, invalid_inherited)
 
-    def test_validate_oxygen_keyword_with_maximal_valid(self):
+    def test_validate_rmkbridge_keyword_with_maximal_valid(self):
         expected = {
             'name': 'keyword',
             'pass': True,
@@ -146,4 +146,4 @@ class TestOxygenKeywordDict(TestCase,
             }]
         }
 
-        self.assertEqual(validate_oxygen_keyword(expected), expected)
+        self.assertEqual(validate_rmkbridge_keyword(expected), expected)

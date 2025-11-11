@@ -373,8 +373,8 @@ class RobotRunningInterface(object):
         self.build_tests(parsed_results, robot_root_suite)
         return robot_root_suite
 
-    def build_tests(self, oxygen_suite, robot_suite):
-        for parsed_test in oxygen_suite.get('tests', []):
+    def build_tests(self, bridge_suite, robot_suite):
+        for parsed_test in bridge_suite.get('tests', []):
             name = parsed_test['name']
             tags = parsed_test.get('tags', [])
             kw = parsed_test['keywords'][0]
