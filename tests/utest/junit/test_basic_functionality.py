@@ -100,7 +100,7 @@ class JUnitBasicTests(TestCase):
             'suites': [{'name': 'com.example.demo.DemoApplicationTests',
                 'suites': [],
                 'tags': [],
-                'tests': [{'keywords': [{'elapsed': 454.0,
+                'tests': [{'keywords': [{'elapsed': 454000.0,
                                          'keywords': [],
                                          'messages': [],
                                          'name': 'contextLoads() (Execution)',
