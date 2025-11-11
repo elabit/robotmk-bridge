@@ -4,11 +4,11 @@ import sys
 
 from pathlib import Path
 
-from .errors import (InvalidOxygenResultException,
+from .errors import (InvalidRobotmkBridgeResultException,
                      ResultFileIsNotAFileException,
                      ResultFileNotFoundException,
                      SubprocessException)
-from .oxygen_handler_result import validate_oxygen_suite
+from .rmkbridge_handler_result import validate_rmkbridge_suite
 
 def run_command_line(command, check_return_code=True, **env):
     new_env = os.environ.copy()
@@ -40,16 +40,16 @@ def validate_path(filepath):
                                             'but a directory')
     return path
 
-def validate_with_deprecation_warning(oxygen_result_dict, handler):
+def validate_with_deprecation_warning(result_dict, handler):
     try:
-        validate_oxygen_suite(oxygen_result_dict)
-    except InvalidOxygenResultException as e:
+        validate_rmkbridge_suite(result_dict)
+    except InvalidRobotmkBridgeResultException as e:
         import warnings
         # this is not done with triple quotes intentionally
         # to get sensible formatting to output
         msg = (f'\n{handler.__module__} is producing invalid results:\n'
                f'{e}\n\n'
-               'In Oxygen 1.0, handlers will need to produce valid '
+               'In RobotmkBridge 1.0, handlers will need to produce valid '
                'results.\nSee: '
                'https://github.com/eficode/robotframework-oxygen/blob/master/parser_specification.md')
         warnings.warn(msg)

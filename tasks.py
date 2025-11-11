@@ -18,7 +18,7 @@ DUMMYHANDLERS = UNIT_TESTS / 'resources' / 'my_dummy_handlers'
 
 @task
 def clean(context):
-    for path in (f'{SRCPATH / "robotframework_oxygen.egg-info"}',
+    for path in (f'{SRCPATH / "robotframework_robotmk_bridge.egg-info"}',
                  f'{CURDIR / "build"}',
                  f'{CURDIR / "dist"}',
                  f'{CURDIR / ".tox"}',
@@ -59,7 +59,7 @@ def _setup_atest():
         f.write('''dummy_handler_metadata:
             handler: MyDummyMetadataHandler
             keyword: run_metadata_dummy_handler
-            tags: oxygen-metadata''')
+            tags: rmkbridge-metadata''')
     return (tempconf,
             os.pathsep.join([str(SRCPATH),
                              str(DUMMYHANDLERS)]))
@@ -70,7 +70,7 @@ def _setup_atest():
 })
 def atest(context, rf=''):
     tempconf, pythonpath = _setup_atest()
-    run(f'python -m oxygen --add-config {tempconf}',
+    run(f'python -m rmkbridge --add-config {tempconf}',
         env={'PYTHONPATH': pythonpath})
     try:
         run(f'robot '
@@ -78,11 +78,11 @@ def atest(context, rf=''):
             f'--pythonpath {str(DUMMYHANDLERS)} '
             f'--dotted '
             f'{rf} '
-            f'--listener oxygen.listener '
+            f'--listener rmkbridge.listener '
             f'{str(CURDIR / "tests" / "atest")}',
             pty=(not system() == 'Windows'))
     finally:
-        run('python -m oxygen --reset-config', env={'PYTHONPATH': pythonpath})
+        run('python -m rmkbridge --reset-config', env={'PYTHONPATH': pythonpath})
 
 @task
 def test(context):
@@ -90,15 +90,15 @@ def test(context):
     atest(context)
 
 @task
-def update_oxygen_schema(context):
+def update_rmkbridge_schema(context):
     import sys
     import json
     from pydantic import TypeAdapter
 
     sys.path.insert(0, str(SRCPATH))
-    from oxygen.oxygen_handler_result import OxygenSuiteDict
+    from rmkbridge.rmkbridge_handler_result import RobotmkBridgeSuiteDict
 
-    schema = TypeAdapter(OxygenSuiteDict).json_schema()
+    schema = TypeAdapter(RobotmkBridgeSuiteDict).json_schema()
     out = json.dumps(schema, indent=2)
     with open(CURDIR / 'handler_result_specification.md', 'r+') as f:
         header = f.readline()
@@ -108,16 +108,16 @@ def update_oxygen_schema(context):
         f.truncate()
     print('Updated schema')
 
-@task(pre=[update_oxygen_schema])
+@task(pre=[update_rmkbridge_schema])
 def doc(context):
     doc_path = CURDIR / 'docs'
     if not doc_path.exists():
         run(f'mkdir {doc_path}')
-    version = run('python -c "import oxygen; print(oxygen.__version__)"',
+    version = run('python -c "import rmkbridge; print(rmkbridge.__version__)"',
                   env={'PYTHONPATH': str(SRCPATH)})
     version = version.stdout.strip()
-    target = doc_path / f'OxygenLibrary-{version}.html'
-    run(f'python -m robot.libdoc oxygen.OxygenLibrary {target}',
+    target = doc_path / f'RobotmkBridgeLibrary-{version}.html'
+    run(f'python -m robot.libdoc rmkbridge.RobotmkBridgeLibrary {target}',
         env={'PYTHONPATH': str(SRCPATH)})
     run(f'cp {target} {doc_path / "index.html"}')
 

@@ -1,4 +1,4 @@
-from oxygen import BaseHandler
+from rmkbridge import BaseHandler
 
 
 class MyDummyHandler(BaseHandler):

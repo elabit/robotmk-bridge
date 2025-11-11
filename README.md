@@ -48,7 +48,7 @@ After installing Oxygen, it can be used in the Robot Framework suite to write te
 
 ``` RobotFramework
 *** Settings ***
-Library    oxygen.OxygenLibrary
+Library    rmkbridge.RobotmkBridgeLibrary
 
 *** Test cases ***
 
@@ -217,4 +217,5 @@ Details of project licensing can be found in the [LICENSE](LICENSE) file in the 
 
 # Acknowledgments
 
-Oxygen tool was developed by Eficode Oy as part of [Testomat project](https://www.testomatproject.eu/) with funding by [Business Finland](https://www.businessfinland.fi/).
+See [ACKNOWLEDGEMENTS](./ACKNOWLEDGEMENTS.md) for more information.
+

@@ -1,5 +1,5 @@
 *** Settings ***
-Library   oxygen.OxygenLibrary
+Library   rmkbridge.RobotmkBridgeLibrary
 
 *** Variables ***
 ${RESOURCES}    ${CURDIR}/../resources

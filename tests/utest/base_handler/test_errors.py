@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from oxygen.base_handler import BaseHandler
+from rmkbridge.base_handler import BaseHandler
 from ..helpers import get_config
 
 class TestBaseHandlerErrors(TestCase):
@@ -11,4 +11,4 @@ class TestBaseHandlerErrors(TestCase):
         always be specific to implementing plugin.
         '''
         with self.assertRaises(NotImplementedError):
-            BaseHandler(get_config()['oxygen.junit']).parse_results('whatever')
+            BaseHandler(get_config()['rmkbridge.junit']).parse_results('whatever')

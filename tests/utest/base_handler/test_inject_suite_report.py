@@ -1,13 +1,13 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from oxygen.base_handler import BaseHandler
+from rmkbridge.base_handler import BaseHandler
 from ..helpers import get_config
 
 
 class TestInjectSuiteReport(TestCase):
     def setUp(self):
-        self.handler = BaseHandler(get_config()['oxygen.junit'])
+        self.handler = BaseHandler(get_config()['rmkbridge.junit'])
 
         self.test = MagicMock()
         self.parent = MagicMock()

@@ -1,5 +1,5 @@
 robotframework<7
-junitparser==2.0
+junitparser==4
 PyYAML>=3.13
 pydantic>=2.4.2
 
@@ -14,3 +14,4 @@ docutils>=0.16   # needed to generate library documentation with libdoc
 Pygments>=2.6.1  # this one too
 twine>=3.1.1 # needed for releasing to pypi
 build>=0.6.0 # needed for building the distribution
+black==25.11

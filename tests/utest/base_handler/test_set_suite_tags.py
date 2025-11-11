@@ -1,13 +1,13 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from oxygen.base_handler import BaseHandler
+from rmkbridge.base_handler import BaseHandler
 from ..helpers import get_config
 
 
 class TestSetSuiteTags(TestCase):
     def setUp(self):
-        self.object = BaseHandler(get_config()['oxygen.junit'])
+        self.object = BaseHandler(get_config()['rmkbridge.junit'])
 
         self.suite = MagicMock()
         self.suite.set_tags = MagicMock()

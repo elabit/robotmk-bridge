@@ -1,5 +1,5 @@
 *** Settings ***
-Library     oxygen.OxygenLibrary
+Library     rmkbridge.RobotmkBridgeLibrary
 Metadata    RF suite    This metadata comes from the suite file itself
 
 *** Test Cases ***

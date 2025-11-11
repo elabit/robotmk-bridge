@@ -56,7 +56,7 @@ class ZAProxyHandler(BaseHandler):
             if 'OWASPZAPReport' in json_dict.keys():
                 json_dict = json_dict['OWASPZAPReport']
         except:
-            print('Oxygen: Loading {} as XML failed, falling '
+            print('RobotmkBridge: Loading {} as XML failed, falling '
                   'back to JSON.'.format(file_name))
             json_dict = json.loads(result_contents)
         return json_dict
@@ -87,7 +87,7 @@ class ZAProxyHandler(BaseHandler):
         zap_run_date = self._get_parameter(zap_dict, 'generated', 'Unknown ZAProxy Run Time')
 
         return_dict = {}
-        return_dict['name'] = 'Oxygen ZAProxy Report ({}, {})'.format(
+        return_dict['name'] = 'RobotmkBridge ZAProxy Report ({}, {})'.format(
             zap_version,
             zap_run_date,
         )

@@ -1,6 +1,6 @@
 import sys
 from unittest import TestCase
-from oxygen.errors import MismatchArgumentException
+from rmkbridge.errors import MismatchArgumentException
 from ..helpers import RESOURCES_PATH, get_config, example_robot_output
 
 sys.path.append(str(RESOURCES_PATH / 'my_dummy_handlers'))
@@ -26,7 +26,7 @@ class DummyHandlerSingleArgTests(TestCase):
 
     def setUp(self):
         self.handler = DummyHandlerSingleArg(
-            get_config()['oxygen.my_dummy_handler']
+            get_config()['rmkbridge.my_dummy_handler']
         )
 
     def test_run_my_dummy_handler(self):
@@ -50,7 +50,7 @@ class DummyHandlerMultipleArgsTests(TestCase):
 
     def setUp(self):
         self.handler = DummyHandlerMultipleArgs(
-            get_config()['oxygen.my_dummy_handler']
+            get_config()['rmkbridge.my_dummy_handler']
         )
 
     def test_parse_results(self):
@@ -74,7 +74,7 @@ class DummyHandlerMultipleArgsTooFewTests(TestCase):
 
     def setUp(self):
         self.handler = DummyHandlerMultipleArgsTooFew(
-            get_config()['oxygen.my_dummy_handler']
+            get_config()['rmkbridge.my_dummy_handler']
         )
 
     def test_parse_results(self):
@@ -99,7 +99,7 @@ class DummyHandlerMultipleArgsSingleTests(TestCase):
 
     def setUp(self):
         self.handler = DummyHandlerMultipleArgsTooFew(
-            get_config()['oxygen.my_dummy_handler']
+            get_config()['rmkbridge.my_dummy_handler']
         )
 
     def test_parse_results(self):
@@ -121,7 +121,7 @@ class DummyHandlerDefaultParamsTests(TestCase):
 
     def setUp(self):
         self.handler = DummyHandlerDefaultParams(
-            get_config()['oxygen.my_dummy_handler']
+            get_config()['rmkbridge.my_dummy_handler']
         )
 
     def test_parse_results_with_one(self):

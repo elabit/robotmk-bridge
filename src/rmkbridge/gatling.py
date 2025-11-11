@@ -9,9 +9,9 @@ class GatlingHandler(BaseHandler):
     def run_gatling(self, result_file, command, check_return_code=False, **env):
         '''Run Gatling performance testing tool specified with ``command``.
 
-        ``result_file`` is path to the file ``oxygen`` uses to parse the results.
+    ``result_file`` is path to the file ``rmkbridge`` uses to parse the results.
         It is important you craft your `command` to produce the file
-        `result_file` argument expects — otherwise Oxygen will not be able to
+    `result_file` argument expects — otherwise RobotmkBridge will not be able to
         parse the results later on.
 
         ``command`` is used to run the test tool. It is a single string which is

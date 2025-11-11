@@ -1,5 +1,5 @@
 *** Settings ***
-Library    oxygen.OxygenLibrary
+Library    rmkbridge.RobotmkBridgeLibrary
 Library    OperatingSystem
 
 *** Variables ***
@@ -7,7 +7,7 @@ ${JUNIT XML FILE}=    ${CURDIR}${/}..${/}resources${/}junit-single-testsuite.xml
 
 *** Test Cases ***
 Oxygen's unit test with dynamic import
-    Import Library    oxygen.OxygenLibrary
+    Import Library    rmkbridge.RobotmkBridgeLibrary
     Run JUnit     ${JUNIT XML FILE}
     ...           echo Run JUnit Dynamically Imported
 

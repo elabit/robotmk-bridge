@@ -8,13 +8,13 @@ from xml.etree import ElementTree
 
 from robot.running.model import TestSuite
 
-from oxygen.oxygen import OxygenCLI, OxygenCore
-from oxygen.config import CONFIG_FILE, ORIGINAL_CONFIG_FILE
+from rmkbridge.rmkbridge import RobotmkBridgeCLI, RobotmkBridgeCore
+from rmkbridge.config import CONFIG_FILE, ORIGINAL_CONFIG_FILE
 
 from ..helpers import RESOURCES_PATH
 
 
-class TestOxygenCLIEntryPoints(TestCase):
+class TestRobotmkBridgeCLIEntryPoints(TestCase):
     '''Coverage does not measure coverage correctly for these tests.
 
     We have tests for __main__ entrypoint below, but Coverage is unable to
@@ -35,20 +35,20 @@ class TestOxygenCLIEntryPoints(TestCase):
         self.tearDownClass()
 
     def test_main_level_entrypoint(self):
-        self.verify_cli_help_text('python -m oxygen --help')
-        self.verify_cli_help_text('python -m oxygen -h')
+        self.verify_cli_help_text('python -m rmkbridge --help')
+        self.verify_cli_help_text('python -m rmkbridge -h')
 
     def test_direct_module_entrypoint(self):
-        self.verify_cli_help_text('python -m oxygen.oxygen --help')
-        self.verify_cli_help_text('python -m oxygen.oxygen -h')
+        self.verify_cli_help_text('python -m rmkbridge.rmkbridge --help')
+        self.verify_cli_help_text('python -m rmkbridge.rmkbridge -h')
 
     def test_cli_with_no_args(self):
-        proc = run('python -m oxygen',
+        proc = run('python -m rmkbridge',
                    shell=True,
                    text=True,
                    capture_output=True)
         self.assertEqual(proc.returncode, 2)
-        self.assertIn('usage: oxygen', proc.stderr)
+        self.assertIn('usage: rmkbridge', proc.stderr)
 
     def _run(self, cmd):
         try:
@@ -59,7 +59,7 @@ class TestOxygenCLIEntryPoints(TestCase):
 
     def verify_cli_help_text(self, cmd):
         out = self._run(cmd)
-        self.assertIn('usage: oxygen', out)
+        self.assertIn('usage: rmkbridge', out)
         self.assertIn('-h, --help', out)
 
     def test_junit_works_on_cli(self):
@@ -69,7 +69,7 @@ class TestOxygenCLIEntryPoints(TestCase):
         if actual.exists():
             actual.unlink()  # delete file if exists
 
-        self._run(f'python -m oxygen oxygen.junit {target}')
+        self._run(f'python -m rmkbridge rmkbridge.junit {target}')
 
         example_xml = ElementTree.parse(example).getroot()
         actual_xml = ElementTree.parse(actual).getroot()
@@ -92,7 +92,7 @@ class TestOxygenCLIEntryPoints(TestCase):
         with open(CONFIG_FILE, 'w') as f:
             f.write('complete: gibberish')
 
-        self._run(f'python -m oxygen --reset-config')
+        self._run(f'python -m rmkbridge --reset-config')
 
         with open(CONFIG_FILE, 'r') as f:
             config_content = f.read()
@@ -100,7 +100,7 @@ class TestOxygenCLIEntryPoints(TestCase):
         self._validate_handler_names(config_content)
 
     def test_print_config(self):
-        out = self._run('python -m oxygen --print-config')
+        out = self._run('python -m rmkbridge --print-config')
 
         self.assertIn('Using config file', out)
         self._validate_handler_names(out)
@@ -114,7 +114,7 @@ class TestOxygenCLIEntryPoints(TestCase):
     def test_add_config(self):
         filepath = self._make_test_config()
 
-        self._run(f'python -m oxygen --add-config {filepath}')
+        self._run(f'python -m rmkbridge --add-config {filepath}')
 
         with open(CONFIG_FILE, 'r') as f:
             config_content = f.read()
@@ -128,8 +128,8 @@ class TestOxygenCLIEntryPoints(TestCase):
     def test_main_level_args_override_handler_args(self):
         filepath = self._make_test_config()
 
-        cmd = ('python -m oxygen {main_level_arg} '
-               f'oxygen.junit {RESOURCES_PATH / "green-junit-example.xml"}')
+        cmd = ('python -m rmkbridge {main_level_arg} '
+               f'rmkbridge.junit {RESOURCES_PATH / "green-junit-example.xml"}')
 
         self._run(cmd.format(main_level_arg=f'--add-config {filepath}'))
         self.assertTrue(self._is_file_content(CONFIG_FILE, 'complete: gibberish'))
@@ -144,13 +144,13 @@ class TestOxygenCLIEntryPoints(TestCase):
         self.assertNotIn('gibberish', out)
 
 
-class TestOxygenCLI(TestCase):
+class TestRobotmkBridgeCLI(TestCase):
 
     def setUp(self):
-        self.cli = OxygenCLI()
+        self.cli = RobotmkBridgeCLI()
 
-    @patch('oxygen.oxygen.RobotInterface')
-    @patch('oxygen.oxygen.OxygenCLI.parse_args')
+    @patch('rmkbridge.rmkbridge.RobotInterface')
+    @patch('rmkbridge.rmkbridge.RobotmkBridgeCLI.parse_args')
     def test_run(self, mock_parse_args, mock_robot_iface):
         mock_parse_args.return_value = {
             'result_file': 'path/to/file.xml',

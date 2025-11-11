@@ -2,7 +2,7 @@
 ```
 {
   "$defs": {
-    "OxygenKeywordDict": {
+    "RobotmkBridgeKeywordDict": {
       "properties": {
         "pass": {
           "title": "Pass",
@@ -31,11 +31,11 @@
           "type": "array"
         },
         "teardown": {
-          "$ref": "#/$defs/OxygenKeywordDict"
+          "$ref": "#/$defs/RobotmkBridgeKeywordDict"
         },
         "keywords": {
           "items": {
-            "$ref": "#/$defs/OxygenKeywordDict"
+            "$ref": "#/$defs/RobotmkBridgeKeywordDict"
           },
           "title": "Keywords",
           "type": "array"
@@ -45,10 +45,10 @@
         "pass",
         "name"
       ],
-      "title": "OxygenKeywordDict",
+      "title": "RobotmkBridgeKeywordDict",
       "type": "object"
     },
-    "OxygenSuiteDict": {
+    "RobotmkBridgeSuiteDict": {
       "properties": {
         "name": {
           "title": "Name",
@@ -62,10 +62,10 @@
           "type": "array"
         },
         "setup": {
-          "$ref": "#/$defs/OxygenKeywordDict"
+          "$ref": "#/$defs/RobotmkBridgeKeywordDict"
         },
         "teardown": {
-          "$ref": "#/$defs/OxygenKeywordDict"
+          "$ref": "#/$defs/RobotmkBridgeKeywordDict"
         },
         "metadata": {
           "additionalProperties": {
@@ -76,14 +76,14 @@
         },
         "suites": {
           "items": {
-            "$ref": "#/$defs/OxygenSuiteDict"
+            "$ref": "#/$defs/RobotmkBridgeSuiteDict"
           },
           "title": "Suites",
           "type": "array"
         },
         "tests": {
           "items": {
-            "$ref": "#/$defs/OxygenTestCaseDict"
+            "$ref": "#/$defs/RobotmkBridgeTestCaseDict"
           },
           "title": "Tests",
           "type": "array"
@@ -92,10 +92,10 @@
       "required": [
         "name"
       ],
-      "title": "OxygenSuiteDict",
+      "title": "RobotmkBridgeSuiteDict",
       "type": "object"
     },
-    "OxygenTestCaseDict": {
+    "RobotmkBridgeTestCaseDict": {
       "properties": {
         "name": {
           "title": "Name",
@@ -103,7 +103,7 @@
         },
         "keywords": {
           "items": {
-            "$ref": "#/$defs/OxygenKeywordDict"
+            "$ref": "#/$defs/RobotmkBridgeKeywordDict"
           },
           "title": "Keywords",
           "type": "array"
@@ -116,24 +116,20 @@
           "type": "array"
         },
         "setup": {
-          "$ref": "#/$defs/OxygenKeywordDict"
+          "$ref": "#/$defs/RobotmkBridgeKeywordDict"
         },
         "teardown": {
-          "$ref": "#/$defs/OxygenKeywordDict"
+          "$ref": "#/$defs/RobotmkBridgeKeywordDict"
         }
       },
       "required": [
         "name",
         "keywords"
       ],
-      "title": "OxygenTestCaseDict",
+      "title": "RobotmkBridgeTestCaseDict",
       "type": "object"
     }
   },
-  "allOf": [
-    {
-      "$ref": "#/$defs/OxygenSuiteDict"
-    }
-  ]
+  "$ref": "#/$defs/RobotmkBridgeSuiteDict"
 }
 ```
