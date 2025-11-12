@@ -30,7 +30,7 @@ License :: OSI Approved :: MIT License
 setup(name='robotframework-robotmk-bridge',
       author='Simon Meggle',
       author_email='mail@robotmk.org',
-      url='wwww.robotmk.org',
+      url='https://wwww.robotmk.org',
       license='MIT',
       install_requires=[
            'robotframework<7.0.0,>=6.0.0',
