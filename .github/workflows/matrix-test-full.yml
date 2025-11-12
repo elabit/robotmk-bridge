@@ -1,9 +1,8 @@
-name: Tests
+name: Matrix Tests FULL
 
 on:
-  push:
-
-  # Allows you to run this workflow manually from the Actions tab
+  # DISABLED in favour of release please triggered tests
+  #push:
   workflow_dispatch:
 
 jobs:

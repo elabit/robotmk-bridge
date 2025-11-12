@@ -1,5 +1,7 @@
 # Oxygen
 
+Version: 1.0.0  <!-- x-release-please-version -->
+
 Oxygen is a [Robot Framework](https://robotframework.org/) tool that empowers the user to convert the results of any testing tool or framework to [Robot Framework's reporting](https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#screenshots). This consolidates all test reporting together regardless of tools used.
 
 Oxygen has built-in support for three testing frameworks: [JUnit](https://junit.org/junit5/), [Gatling](https://gatling.io/), and [Zed Attack Proxy (ZAP)](https://www.zaproxy.org/).
