@@ -22,7 +22,14 @@ jobs:
           #package-name: robotframework-robotmk-bridge
           manifest-file: .release-please-manifest.json
           config-file: release-please-config.json
-     
+
+      # optional zum Debuggen
+      - name: Echo outputs
+        run: |
+          echo "release_created=${{ steps.release.outputs.release_created }}"
+          echo "tag_name=${{ steps.release.outputs.tag_name }}"
+          echo "version=${{ steps.release.outputs.version }}"          
+          
     #   - name: Setup tmate session
     #     uses: mxschmitt/action-tmate@v3  
         
