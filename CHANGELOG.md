@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/elabit/robotmk-bridge/compare/robotframework-robotmk-bridge-v0.2.0...robotframework-robotmk-bridge-v0.3.0) (2025-11-12)
+
+
+### 🎉 New Features
+
+* 1822 ([#16](https://github.com/elabit/robotmk-bridge/issues/16)) ([71f5c19](https://github.com/elabit/robotmk-bridge/commit/71f5c19557d4d24537189684703d0b6dc12e9496))
+
 ## [0.2.0](https://github.com/elabit/robotmk-bridge/compare/robotframework-robotmk-bridge-v0.1.0...robotframework-robotmk-bridge-v0.2.0) (2025-11-12)
 
 

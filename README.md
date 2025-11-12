@@ -1,6 +1,6 @@
 # Oxygen
 
-Version: 0.2.0  <!-- x-release-please-version -->
+Version: 0.3.0  <!-- x-release-please-version -->
 
 Oxygen is a [Robot Framework](https://robotframework.org/) tool that empowers the user to convert the results of any testing tool or framework to [Robot Framework's reporting](https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#screenshots). This consolidates all test reporting together regardless of tools used.
 
