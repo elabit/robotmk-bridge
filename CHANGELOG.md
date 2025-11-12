@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/elabit/robotmk-bridge/compare/v0.1.0...v0.1.1) (2025-11-12)
+
+
+### 📚 Documentation
+
+* Updated README, DEVGUIDE, CONTRIBUTION ([#23](https://github.com/elabit/robotmk-bridge/issues/23)) ([8a744b8](https://github.com/elabit/robotmk-bridge/commit/8a744b8160ad56ce9e489dba550db050ec217997))
+
 ## 0.1.0 (2025-11-12)
 
 
