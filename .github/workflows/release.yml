@@ -10,6 +10,10 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    outputs:                              # <-- Job-Outputs setzen!
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name:        ${{ steps.release.outputs.tag_name }}
+      version:         ${{ steps.release.outputs.version }}            
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -19,8 +23,8 @@ jobs:
           manifest-file: .release-please-manifest.json
           config-file: release-please-config.json
      
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3  
+    #   - name: Setup tmate session
+    #     uses: mxschmitt/action-tmate@v3  
         
         
   generate-matrix:
