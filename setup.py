@@ -9,18 +9,16 @@ with open(path_join(SRC, 'rmkbridge', 'version.py')) as f:
     exec(f.read())
 
 KEYWORDS = ('robotframework testing testautomation acceptancetesting atdd bdd'
-            'reporting testreporting robotmk checkmk syntheticmonitoring')
+            'reporting testreporting robotmk checkmk syntheticmonitoring junit'
+            'gatling' 'zap' 'cypress' 'xunit')
 
-SHORT_DESC = ('RobotmkBridge is an extensible tool for Robot Framework that '
-              'enables you to integrate the results of arbitrary other testing tools '
-              'into Checkmk. It is based on robotframework-oxygen, written by Eficode Oy, '
-              'and is designed to facilitate the monitoring of test automation.')
+SHORT_DESC = ('RobotmkBridge integrates the results of arbitrary testing tools into Checkmk.')              
 
 with open(path_join(CURDIR, 'README.md'), 'r') as readme:
     LONG_DESCRIPTION = readme.read()
 
 CLASSIFIERS = '''
-Development Status :: 5 - Production/Stable
+Development Status :: 3 - Alpha
 Programming Language :: Python :: 3 :: Only
 Operating System :: OS Independent
 Topic :: Software Development :: Testing
@@ -30,7 +28,7 @@ License :: OSI Approved :: MIT License
 setup(name='robotframework-robotmk-bridge',
       author='Simon Meggle',
       author_email='mail@robotmk.org',
-      url='https://wwww.robotmk.org',
+      url='https://github.com/elabit/robotmk-bridge',
       license='MIT',
       install_requires=[
            'robotframework<7.0.0,>=6.0.0',

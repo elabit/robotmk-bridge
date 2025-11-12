@@ -38,7 +38,8 @@
                 }
             ],
             "pull-request-title-pattern": "chore: release ${version}",
-            "pull-request-header": ":robot: Release time! *beep* *boop* :robot:"
+            "pull-request-header": ":robot: Release time! *beep* *boop* :robot:",
+            "include-component-in-tag": false
         }
     }
 }
