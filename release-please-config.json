@@ -3,7 +3,7 @@
         ".": {
             "release-type": "python",
             "package-name": "robotframework-robotmk-bridge",
-            "extra-files": ["src/rmkbridge/version.py", "README.md"],            
+            "extra-files": ["src/rmkbridge/version.py"],            
             "changelog-sections": [
                 {
                     "type": "feat",
