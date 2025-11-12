@@ -1,10 +1,6 @@
 # Robotmk Bridge
 
-<<<<<<< Updated upstream
-Version: 0.1.0  <!-- x-release-please-version -->
-=======
 _**The bridge between automation islands and your monitoring**_
->>>>>>> Stashed changes
 
 Robotmk Bridge is a [Robot Framework](https://robotframework.org/) library, listener, and CLI that for external test tools to convert their results into Robot Framework results.
 
