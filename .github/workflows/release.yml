@@ -1,0 +1,72 @@
+name: release-please
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: google-github-actions/release-please-action@v4
+        id: release
+        with:
+          #release-type: python
+          #package-name: robotframework-robotmk-bridge
+          manifest-file: .release-please-manifest.json
+          config-file: release-please-config.json
+
+  generate-matrix:
+    runs-on: ubuntu-latest
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    outputs:
+      python-versions: ${{ steps.generate-matrix.outputs.PYTHONS }}
+      rf-versions: ${{ steps.generate-matrix.outputs.RF_VERSIONS }}
+    steps:
+      - name: "Generate Matrix"
+        id: generate-matrix
+        run: |
+          echo 'PYTHONS=["3.12.3"]' >> $GITHUB_OUTPUT
+          echo 'RF_VERSIONS=["6.1.1"]' >> $GITHUB_OUTPUT
+
+  tests-linux:
+    runs-on: ubuntu-latest
+    needs: generate-matrix
+    strategy:
+      fail-fast: true
+      matrix:
+        python: ${{ fromJSON(needs.generate-matrix.outputs.python-versions) }}
+        rf-version: ${{ fromJSON(needs.generate-matrix.outputs.rf-versions) }}
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+      - name: Run tests 
+        uses: ./.github/workflows/run-tests
+        with:
+          python-version: ${{ matrix.python }}
+          rf-version: ${{ matrix.rf-version }}
+          terminal: bash
+
+  publish:
+    needs: [tests-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write   # required for PyPI Trusted Publisher
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Build distribution
+        run: python -m build
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://upload.pypi.org/legacy/
