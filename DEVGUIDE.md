@@ -1,4 +1,55 @@
-## Oxygen developer guide
+# Oxygen developer guide
+
+WIP - the following section was moved from the README: 
+
+---
+
+## Handlers & Configuration
+
+Handlers are registered in `config.yml` inside the package. Inspect or modify the file via the CLI commands above. A typical entry looks like:
+
+```yaml
+rmkbridge.junit:
+  handler: JUnitHandler
+  keyword: run_junit
+  tags:
+    - rmkbridge-junit
+```
+
+- The dictionary key (`rmkbridge.junit`) must be importable (`import rmkbridge.junit`).
+- `handler` names the class instantiated from that module.
+- `keyword` becomes the Robot Framework keyword (`Run Junit`, `run_junit`, etc.).
+- `tags` are applied to every injected test case.
+- Handlers may define extra settings (for example, the ZAP handler ships `accepted_risk_level`).
+
+### Creating Custom Handlers
+
+1. Extend `rmkbridge.BaseHandler` and implement `parse_results` plus your trigger keyword.
+2. Make your module discoverable (PYTHONPATH or installable package).
+3. Append your configuration with `python -m rmkbridge --add-config path/to/handler_config.yml`.
+4. Conform to the [handler result specification](handler_result_specification.md) when returning parsed suites.
+
+The [developer guide](DEVGUIDE.md) walks through a complete example.
+
+## Developing
+
+Clone the repository and install the development dependencies:
+
+```bash
+pip install -r requirements.txt
+pip install -e .
+```
+
+Robotmk Bridge uses [`invoke`](https://www.pyinvoke.org/) for common tasks:
+
+```bash
+invoke --list
+invoke test
+```
+
+You can also run Robot Framework acceptance suites under `tests/` to validate changes end-to-end.
+---
+
 
 This is a developer guide for Oxygen. We will write a handler for [https://locust.io/](https://locust.io/), which is a performance testing tool.
 
