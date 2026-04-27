@@ -1,68 +1,53 @@
-# Oxygen developer guide
+# How to write a custom handler
 
-WIP - the following section was moved from the README: 
+## Basics
 
----
+### What is a handler? 
 
-## Handlers & Configuration
+Handlers are Python files which encapsulate the logic to convert the results of 3rd party testing tools.  
+You can find the files of the currently supported 3 formats (JUnit, Gatling, ZAP) in the [package directory](./src/). 
 
-Handlers are registered in `config.yml` inside the package. Inspect or modify the file via the CLI commands above. A typical entry looks like:
+### Handler Configuration (YAML)
+
+All handlers must be registered and configured in `config.yml` inside the [package directory](./src/).  
+A typical entry looks like:
 
 ```yaml
-rmkbridge.junit:
-  handler: JUnitHandler
-  keyword: run_junit
-  tags:
-    - rmkbridge-junit
+rmkbridge.zap:
+  handler: ZAProxyHandler
+  keyword: run_zap
+  tags: 
+    - rmkbridge-zap
+  accepted_risk_level: 2
+  required_confidence_level: 1
 ```
 
-- The dictionary key (`rmkbridge.junit`) must be importable (`import rmkbridge.junit`).
-- `handler` names the class instantiated from that module.
-- `keyword` becomes the Robot Framework keyword (`Run Junit`, `run_junit`, etc.).
-- `tags` are applied to every injected test case.
-- Handlers may define extra settings (for example, the ZAP handler ships `accepted_risk_level`).
+Explanation: 
 
-### Creating Custom Handlers
+- `rmkbridge.zap`: The dictionary key must match the corresponding importable **module** (`import rmkbridge.zap`).
+  - `ZAProxyHandler` names the **handler class** instantiated from that module.
+  - `run_zap` is the Python function for the handler's **trigger keyword** to the tool.
+  - `rmkbridge-zap` tag(s) which should be applied to every test case (optional).
+  - If a handlers requires extra arguments, they can also be specified. 
 
-1. Extend `rmkbridge.BaseHandler` and implement `parse_results` plus your trigger keyword.
+### Creation steps
+
+The development of a custom handler is done in these four steps:
+
+1. Extend `rmkbridge.BaseHandler` and implement `parse_results` plus your trigger keyword `run_XXX`.
 2. Make your module discoverable (PYTHONPATH or installable package).
 3. Append your configuration with `python -m rmkbridge --add-config path/to/handler_config.yml`.
 4. Conform to the [handler result specification](handler_result_specification.md) when returning parsed suites.
 
-The [developer guide](DEVGUIDE.md) walks through a complete example.
-
-## Developing
-
-Clone the repository and install the development dependencies:
-
-```bash
-pip install -r requirements.txt
-pip install -e .
-```
-
-Robotmk Bridge uses [`invoke`](https://www.pyinvoke.org/) for common tasks:
-
-```bash
-invoke --list
-invoke test
-```
-
-You can also run Robot Framework acceptance suites under `tests/` to validate changes end-to-end.
----
 
 
-This is a developer guide for Oxygen. We will write a handler for [https://locust.io/](https://locust.io/), which is a performance testing tool.
+## Let's go 
 
-# Getting started
+### Goal: A handler for Locust
 
-## Prerequisites
+In this example, we will write a handler for [https://locust.io/](https://locust.io/), which is an open-source load-testing tool that lets you simulate large numbers of users to measure how your system performs under stress.
 
-Python 3
-
-
-## What is our goal? 
-
-The performance tests are defined in python files which look like following:
+Locust tests are defined in python files which look like following:
 
 ```
 from locust import HttpUser, task, between
@@ -76,7 +61,7 @@ class QuickstartUser(HttpUser):
 
 ```
 
-And the output of the tests are .csv files which look like following:
+Locust test results are .csv files which look like following:
 
 ```
 "Type","Name","Request Count","Failure Count","Median Response Time","Average Response Time","Min Response Time","Max Response Time","Average Content Size","Requests/s","Failures/s","50%","66%","75%","80%","90%","95%","98%","99%","99.9%","99.99%","99.999%","100%"
@@ -86,23 +71,27 @@ And the output of the tests are .csv files which look like following:
 "None","Aggregated",39,5,81,109,66,402,1916,1.03,0.13,81,86,87,89,300,330,400,400,400,400,400,400
 ```
 
-Our goal is to write an handler, which is able to execute the locust tests inside Robot Framework and provide the test results in user-friendly format in the Robot Framework log files.
+### Fork & Clone the repository 
+
+To contribute a handler to this project, first go to the [Project Github Page](https://github.com/elabit/robotmk-bridge) and click on **Fork**.  
+This will create a linked copy of the repository under your account.
+
+Then clone your fork locally using `git clone https://github.com/<your-username>/robotmk-bridge.git` so you can work on the code.
 
 
-## Start developing
+### Environment preparation
 
-Let's create a virtual environment and install oxygen.
-
-
-```
-python3 -m venv locustenv
-source locustenv/bin/activate
-```
-
-Install Oxygen by running the following:
+First, let's create a Python3 virtual environment:
 
 ```
-$ pip install robotframework-oxygen
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Install the `robotmk-bridge` package:
+
+```
+pip install robotframework-robotmk-bridge
 ```
 
 Let's start developing by creating a working folder
@@ -232,7 +221,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 
 Running this should not produce any errors, and we can import file `locusthandler.py` from `/locusthandler` folder we created. [Read more about packaging python projects from here.](https://packaging.python.org/glossary/#term-import-package) Next we can exit the python intepreter (CTRL + D) and write following lines to the end of `lib/python3.7/site-packages/oxygen/config.yml`:
 
-```
+```yaml
 locusthandler.locusthandler:
   handler: LocustHandler
   keyword: run_locust
@@ -786,3 +775,9 @@ rm -rf locustenv
 ```
 
 And shutdown the demo-app which was tested by locust with CTRL+D. You can also deactivate and delete `packagenv` virtual environment if you wish.
+
+
+## Push 
+
+Make changes in your clone, push them to your fork, and open a **pull request** to propose your changes to the original project.
+
