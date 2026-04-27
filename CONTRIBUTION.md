@@ -150,6 +150,30 @@ To regenerate the Robot Framework library docs under `docs/`:
 invoke doc
 ```
 
+## Commit workflow
+
+This project uses [release please](https://github.com/googleapis/release-please-action) to maintain the Changelog and Releases. 
+
+Resources: 
+
+- https://elixirschool.com/blog/managing-releases-with-release-please
+- https://github.com/googleapis/release-please/blob/main/docs/manifest-releaser.md
+- https://medium.com/@nicolaslelievre/automating-dbt-package-versioning-with-release-please-97ebe0ce9809
+
+Notes: 
+
+- Use feature branches
+- Write commit messages which follow the [https://www.conventionalcommits.org/en/v1.0.0/]{Conventional Commit Standard}
+  - `fix(bridge)`: correct xml escaping => patch
+  - `feat(gatling)`: aggregate requests per scenario => minor
+  - `chore(ci)`: speed up mkp packaging => major
+- push to feature branch 
+- On Github, create PR, merge to main
+- RP creates Release PR => merge => Release is created
+- Run the MKP workflow (currently not possible to run after the Release workflow) => MKPs are built and added to the release. 
+
+
+
 ## Submitting Changes
 
 1. Create a feature branch from `main`:
