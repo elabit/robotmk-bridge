@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/elabit/robotmk-bridge/compare/v0.1.2...v0.2.0) (2026-04-27)
+
+
+### 🎉 New Features
+
+* RF7 support ([#30](https://github.com/elabit/robotmk-bridge/issues/30)) ([5833291](https://github.com/elabit/robotmk-bridge/commit/5833291cb39bd7a370f95510f9034ce6b5671da3)), closes [#2](https://github.com/elabit/robotmk-bridge/issues/2)
+
+
+### 📚 Documentation
+
+* Removed merge comments ([dda9278](https://github.com/elabit/robotmk-bridge/commit/dda927803633ecfa453f74589eb2c6ad1724267e))
+
 ## [0.1.2](https://github.com/elabit/robotmk-bridge/compare/v0.1.1...v0.1.2) (2026-04-27)
 
 
