@@ -150,42 +150,104 @@ To regenerate the Robot Framework library docs under `docs/`:
 invoke doc
 ```
 
-## Commit workflow
-
-This project uses [release please](https://github.com/googleapis/release-please-action) to maintain the Changelog and Releases. 
-
-Resources: 
-
-- https://elixirschool.com/blog/managing-releases-with-release-please
-- https://github.com/googleapis/release-please/blob/main/docs/manifest-releaser.md
-- https://medium.com/@nicolaslelievre/automating-dbt-package-versioning-with-release-please-97ebe0ce9809
-
-Notes: 
-
-- Use feature branches
-- Write commit messages which follow the [https://www.conventionalcommits.org/en/v1.0.0/]{Conventional Commit Standard}
-  - `fix(bridge)`: correct xml escaping => patch
-  - `feat(gatling)`: aggregate requests per scenario => minor
-  - `chore(ci)`: speed up mkp packaging => major
-- push to feature branch 
-- On Github, create PR, merge to main
-- RP creates Release PR => merge => Release is created
-- Run the MKP workflow (currently not possible to run after the Release workflow) => MKPs are built and added to the release. 
-
-
-
 ## Submitting Changes
 
-1. Create a feature branch from `main`:
+### Step 1 — Create a feature branch
+
+Always branch off `main`:
 
 ```bash
-git checkout -b feature/my-change
+git checkout main && git pull
+git checkout -b feat/my-change   # or fix/my-change, docs/my-change, …
 ```
 
-2. Make your changes, add tests, and ensure the full test suite passes:
+### Step 2 — Write Conventional Commits
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) because the release automation reads your commit messages to determine the next version and generate the changelog automatically.
+
+The format is:
+
+```
+<type>(<scope>): <short description>
+```
+
+| Type | When to use | Version bump |
+|------|-------------|-------------|
+| `feat` | New feature or behaviour | **minor** (`0.1.0 → 0.2.0`) |
+| `fix` | Bug fix | **patch** (`0.1.0 → 0.1.1`) |
+| `perf` | Performance improvement | patch |
+| `deps` | Dependency update | patch |
+| `docs` | Documentation only | none |
+| `chore` | Maintenance, CI, tooling | none |
+| `test` | Tests only | none |
+| `feat!` or `BREAKING CHANGE` footer | Breaking API change | **major** (`0.1.0 → 1.0.0`) |
+
+Examples:
+
+```
+fix(junit): correct XML escaping for special characters
+feat(gatling): aggregate requests per scenario
+docs(readme): add quickstart example
+chore(ci): pin Python version in release matrix
+```
+
+### Step 3 — Make your changes and verify
+
+Run the full test suite before pushing:
 
 ```bash
 invoke test
 ```
 
-3. Push your branch and open a pull request against `elabit/robotmk-bridge:main`.
+Format your code:
+
+```bash
+black src/ tests/
+```
+
+### Step 4 — Push and open a Pull Request
+
+```bash
+git push -u origin feat/my-change
+```
+
+Then open a Pull Request on GitHub targeting `main`. Once the PR is reviewed and merged, your changes land on `main`.
+
+---
+
+## How Releases Work
+
+This project uses [release-please](https://github.com/googleapis/release-please-action) to automate versioning and publishing. You never manually update version numbers or the changelog.
+
+```
+your feat/fix PR merged into main
+          │
+          ▼
+release-please bot opens (or updates) a "chore: release X.Y.Z" PR
+  ├── bumps version in src/rmkbridge/version.py
+  ├── bumps version in setup.py
+  ├── bumps .release-please-manifest.json
+  └── updates CHANGELOG.md with your commits grouped by type
+          │
+ you review and merge the Release PR when ready to ship
+          │
+          ▼
+release-please creates a Git tag + GitHub Release
+          │
+          ▼
+CI runs tests (Python 3.12 × Robot Framework 6.1.1)
+          │  all green
+          ▼
+package is published to PyPI automatically
+```
+
+**Key points:**
+
+- release-please keeps exactly **one** open Release PR at a time. Every new merge into `main` updates that PR rather than creating a new one.
+- You control *when* a release happens by deciding when to merge the Release PR. You can batch multiple features/fixes into a single release by merging them all before merging the Release PR.
+- Never edit `src/rmkbridge/version.py`, `setup.py`, or `CHANGELOG.md` manually — release-please owns those files.
+
+**Further reading:**
+
+- [release-please manifest releaser docs](https://github.com/googleapis/release-please/blob/main/docs/manifest-releaser.md)
+- [Managing releases with release-please](https://elixirschool.com/blog/managing-releases-with-release-please)
