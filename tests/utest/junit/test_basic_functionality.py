@@ -90,8 +90,10 @@ class JUnitBasicTests(TestCase):
 
         self.handler.check_for_keyword(fake_test, expected_data)
 
-        self.assertEqual(mock_report.call_args[0][0].name,
-                         'rmkbridge.RobotmkBridgeLibrary.Run Junit')
+        # RF6 returns the library-prefixed name ('rmkbridge.RobotmkBridgeLibrary.Run Junit');
+        # RF7 returns just the short name ('Run Junit'). Normalise by taking the last segment.
+        kw_name = mock_report.call_args[0][0].name
+        self.assertEqual(kw_name.split('.')[-1], 'Run Junit')
         self.assertEqual(self.handler.run_time_data, '/some/path/to.ext')
 
     def test_transform_tests_with_single_test_suite(self):

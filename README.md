@@ -23,6 +23,7 @@ In both cases, the goal is to integrate **any test results** into [Checkmk](http
     - [Gatling](https://gatling.io/)
     - [OWASP ZAP](https://www.zaproxy.org/)
   - Lets you implement **custom handlers** by extending `rmkbridge.BaseHandler`.
+- Robot Framework 6.x and 7.x supported
 - Working modes 
   - Use as a library `rmkbridge.RobotmkBridgeLibrary` plus the listener `rmkbridge.listener`
   - Convert existing results via CLI (`python -m rmkbridge`)
@@ -38,7 +39,7 @@ pip install robotframework-robotmk-bridge
 
 - Windows, Linux, or macOS
 - [Python 3.10+](https://www.python.org/downloads/)
-- [Robot Framework 6.x](https://robotframework.org) (Robot Framework 7+ support is planned)
+- [Robot Framework 6.x or 7.x](https://robotframework.org)
 - [pip](https://pip.pypa.io/) and any extra [requirements](requirements.txt) your handlers need
 
 To verify the installation:
