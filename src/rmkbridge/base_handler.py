@@ -77,8 +77,8 @@ class BaseHandler(object):
         teardown_keyword = None
 
         if setup_keywords:
-            setup_start = setup_keywords[0].starttime
-            setup_end = setup_keywords[-1].endtime
+            setup_start = setup_keywords[0].start_time
+            setup_end = setup_keywords[-1].end_time
             setup_keyword = self._interface.result.create_wrapper_keyword(
                 'RobotmkBridge Setup',
                 setup_start,
@@ -87,8 +87,8 @@ class BaseHandler(object):
                 *setup_keywords)
 
         if teardown_keywords:
-            teardown_start = teardown_keywords[0].starttime
-            teardown_end = teardown_keywords[-1].endtime
+            teardown_start = teardown_keywords[0].start_time
+            teardown_end = teardown_keywords[-1].end_time
             teardown_keyword = self._interface.result.create_wrapper_keyword(
                 'RobotmkBridge Teardown',
                 teardown_start,

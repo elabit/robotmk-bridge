@@ -49,6 +49,11 @@ class TestMsToTimestamp(TestCase):
             m.return_value = timedelta(seconds=7200)
             self._validate_timestamp(RF3ResultIface())
 
+        from rmkbridge.robot7_interface import RobotResultInterface as RF7ResultIface
+        # RF7 interface clamps to epoch without using get_timezone_delta
+        timestamp = RF7ResultIface().ms_to_timestamp(-10)
+        self.assertEqual(timestamp, '19700101 00:00:00.000000')
+
 
 class TestTimestampToMs(TestCase):
     def setUp(self):

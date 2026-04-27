@@ -44,6 +44,24 @@ pip install -e .
 
 Installing with `-e .` (editable mode) means that changes you make in `src/rmkbridge/` take effect immediately without reinstalling.
 
+### Robot Framework version
+
+`requirements.txt` pins `robotframework<7`, so the default local development environment uses **Robot Framework 6**.
+RF7 compatibility is tested exclusively in CI via the matrix (see `.github/workflows/matrix-test-full.yml`), which installs RF6 first via `requirements.txt` and then overrides it with the specific matrix version:
+
+```bash
+pip install -r requirements.txt          # installs RF6 as default
+pip install robotframework==7.x.x        # overrides to the matrix version
+```
+
+If you want to develop or debug against RF7 locally, override the version manually after the initial install:
+
+```bash
+pip install -r requirements.txt
+pip install "robotframework>=7.0"
+pip install -e .
+```
+
 ## Task Runner — `invoke`
 
 The project uses [`invoke`](https://www.pyinvoke.org/) as its task runner. All common development activities are wrapped as `invoke` tasks defined in `tasks.py`.

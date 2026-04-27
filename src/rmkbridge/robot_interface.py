@@ -5,7 +5,10 @@ class RobotInterface(object):
     def __init__(self):
         major_version = int(robot_version().split('.')[0])
 
-        if major_version > 3:
+        if major_version >= 7:
+            from .robot7_interface import (RobotResultInterface,
+                                           RobotRunningInterface)
+        elif major_version >= 4:
             from .robot4_interface import (RobotResultInterface,
                                            RobotRunningInterface)
         else:

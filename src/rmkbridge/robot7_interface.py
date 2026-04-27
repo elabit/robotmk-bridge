@@ -73,12 +73,12 @@ class RobotResultInterface(object):
                           suites,
                           tests,
                           metadata):
-        start_timestamp = self.ms_to_timestamp(start_time)
-        end_timestamp = self.ms_to_timestamp(end_time)
+        start_dt = self.ms_to_datetime(start_time)
+        end_dt = self.ms_to_datetime(end_time)
 
         robot_suite = RobotResultSuite(name,
-                                       starttime=start_timestamp,
-                                       endtime=end_timestamp,
+                                       start_time=start_dt,
+                                       end_time=end_dt,
                                        metadata=metadata)
         robot_suite.set_tags(add=tags, persist=True)
 
@@ -149,15 +149,15 @@ class RobotResultInterface(object):
                          setup_keyword,
                          teardown_keyword,
                          keywords):
-        start_timestamp = self.ms_to_timestamp(start_time)
-        end_timestamp = self.ms_to_timestamp(end_time)
+        start_dt = self.ms_to_datetime(start_time)
+        end_dt = self.ms_to_datetime(end_time)
         status = self.get_keywords_status(setup_keyword, teardown_keyword, *(keywords or []))
 
         robot_test = RobotResultTest(name,
-                               tags=tags,
-                               status=status,
-                               starttime=start_timestamp,
-                               endtime=end_timestamp)
+                                     tags=tags,
+                                     status=status,
+                                     start_time=start_dt,
+                                     end_time=end_dt)
 
         if setup_keyword:
             robot_test.setup = setup_keyword
@@ -226,10 +226,9 @@ class RobotResultInterface(object):
                             messages,
                             setup=False,
                             teardown=False):
-        start_timestamp = self.ms_to_timestamp(start_time)
-        end_timestamp = self.ms_to_timestamp(end_time)
+        start_dt = self.ms_to_datetime(start_time)
+        end_dt = self.ms_to_datetime(end_time)
 
-        # import this here so RF4 interface stays in parity with RF3
         from robot.model import BodyItem
         if setup:
             keyword_type = BodyItem.SETUP
@@ -248,8 +247,8 @@ class RobotResultInterface(object):
         robot_keyword = RobotResultKeyword(name,
                                            tags=tags,
                                            status=keyword_status,
-                                           starttime=start_timestamp,
-                                           endtime=end_timestamp)
+                                           start_time=start_dt,
+                                           end_time=end_dt)
 
         robot_keyword.type = keyword_type
 
@@ -270,9 +269,21 @@ class RobotResultInterface(object):
         return robot_keyword
 
 
-    def get_time_format(self):
-        '''Convenience to return the general Robot timestamp format.'''
-        return '%Y%m%d %H:%M:%S.%f'
+    def ms_to_datetime(self, milliseconds):
+        epoch = datetime.fromtimestamp(0, tz=timezone.utc)
+        if milliseconds < 0:
+            return epoch
+        truncated_seconds = int(milliseconds / 1000)
+        time_object = datetime.fromtimestamp(truncated_seconds, tz=timezone.utc)
+        milliseconds_delta = timedelta(milliseconds=(milliseconds % 1000))
+        return time_object + milliseconds_delta
+
+    def ms_to_timestamp(self, milliseconds):
+        '''Return a timestamp string in the legacy RF format for API consistency.
+        Internally RF7 uses datetime objects (ms_to_datetime), but this method
+        allows shared test code and utilities to work across all RF versions.
+        '''
+        return self.ms_to_datetime(milliseconds).strftime('%Y%m%d %H:%M:%S.%f')
 
 
     def timestamp_to_ms(self, timestamp):
@@ -280,31 +291,13 @@ class RobotResultInterface(object):
             if timestamp.tzinfo is None:
                 timestamp = timestamp.replace(tzinfo=timezone.utc)
             return timestamp.timestamp() * 1000
-        time_format = self.get_time_format()
+        # Fallback: parse legacy string format '%Y%m%d %H:%M:%S.%f'
+        time_format = '%Y%m%d %H:%M:%S.%f'
         time_object = datetime.strptime(
             timestamp,
             time_format,
         ).replace(tzinfo=timezone.utc)
-
         return time_object.timestamp() * 1000
-
-    def ms_to_timestamp(self, milliseconds):
-        epoch = datetime.fromtimestamp(0, tz=timezone.utc)
-        truncated_seconds = int(milliseconds / 1000)
-        time_object = datetime.fromtimestamp(truncated_seconds, tz=timezone.utc)
-
-        if time_object < epoch:
-            time_object = epoch
-
-        milliseconds_delta = timedelta(milliseconds=(milliseconds % 1000))
-        time_object = time_object + milliseconds_delta
-
-        if time_object < epoch:
-            time_object = epoch
-
-        time_format = self.get_time_format()
-
-        return time_object.strftime(time_format)
 
 
     def get_timezone_delta(self, reference_time=None):

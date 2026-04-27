@@ -31,7 +31,7 @@ setup(name='robotframework-robotmk-bridge',
       url='https://github.com/elabit/robotmk-bridge',
       license='MIT',
       install_requires=[
-           'robotframework<7.0.0,>=6.0.0',
+           'robotframework>=6.0.0',
            'junitparser==4.0',
            'PyYAML>=3.13',
            'pydantic>=2.4.2'

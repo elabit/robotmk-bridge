@@ -81,8 +81,10 @@ class GatlingBasicTests(TestCase):
 
         self.handler.check_for_keyword(fake_test, expected_data)
 
-        self.assertEqual(mock_report.call_args[0][0].name,
-                         'rmkbridge.RobotmkBridgeLibrary.Run Gatling')
+        # RF6 returns the library-prefixed name ('rmkbridge.RobotmkBridgeLibrary.Run Gatling');
+        # RF7 returns just the short name ('Run Gatling'). Normalise by taking the last segment.
+        kw_name = mock_report.call_args[0][0].name
+        self.assertEqual(kw_name.split('.')[-1], 'Run Gatling')
         self.assertEqual(self.handler.run_time_data, 'somefile.lol')
 
     def test_gatling_parsing(self):
