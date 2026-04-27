@@ -1,6 +1,10 @@
 # Contributing to Robotmk Bridge
 
-Thank you for your interest in contributing! This guide explains how to set up the development environment and run the test suite.
+Thank you for your interest in contributing! 
+
+This guide explains how to set up the development environment and run the test suite.
+If you want to **contribute** a new handler (e.g. for a new third-party test tool), see [HANDLER-DEVGUIDE.md](HANDLER-DEVGUIDE.md)
+
 
 ## Prerequisites
 
@@ -133,14 +137,8 @@ requirements.txt    # Runtime + dev dependencies
 setup.py            # Package metadata
 ```
 
-## Writing a Custom Handler
+---
 
-If you want to contribute a new handler (e.g. for a new third-party test tool), see [DEVGUIDE.md](DEVGUIDE.md) for a step-by-step walkthrough, including:
-
-1. Extending `rmkbridge.BaseHandler` and implementing `parse_results` and a trigger keyword.
-2. Making your module discoverable via `PYTHONPATH` or as an installable package.
-3. Registering the handler with `python -m rmkbridge --add-config path/to/handler_config.yml`.
-4. Returning results conforming to the [handler result specification](handler_result_specification.md).
 
 ## Generating Library Documentation
 
@@ -150,6 +148,7 @@ To regenerate the Robot Framework library docs under `docs/`:
 invoke doc
 ```
 
+---
 ## Submitting Changes
 
 ### Step 1 — Create a feature branch
