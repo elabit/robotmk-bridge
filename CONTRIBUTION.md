@@ -228,7 +228,8 @@ black src/ tests/
 git push -u origin feat/my-change
 ```
 
-Then open a Pull Request on GitHub targeting `main`. Once the PR is reviewed and merged, your changes land on `main`.
+Then open a Pull Request on GitHub targeting `main`.  
+Once the PR is reviewed and merged, your changes land on `main`.
 
 ---
 
