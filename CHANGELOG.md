@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/elabit/robotmk-bridge/compare/v0.4.1...v0.5.0) (2026-06-25)
+
+
+### 🎉 New Features
+
+* Tosca-Ext Handler ([#45](https://github.com/elabit/robotmk-bridge/issues/45)) ([57f5e10](https://github.com/elabit/robotmk-bridge/commit/57f5e107759c192df3fa7d9338baa79af9f0f1a4))
+
 ## [0.4.1](https://github.com/elabit/robotmk-bridge/compare/v0.4.0...v0.4.1) (2026-06-25)
 
 
