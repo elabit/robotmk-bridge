@@ -1,10 +1,3 @@
-class GatlingHandlerException(Exception):
-    pass
-
-
-class JUnitHandlerException(Exception):
-    pass
-
 
 class RobotmkBridgeException(Exception):
     pass
@@ -14,8 +7,6 @@ class SubprocessException(Exception):
     pass
 
 
-class ZAProxyHandlerException(Exception):
-    pass
 
 
 class ResultFileNotFoundException(Exception):
@@ -35,4 +26,18 @@ class InvalidConfigurationException(Exception):
 
 
 class InvalidRobotmkBridgeResultException(Exception):
+    pass
+
+# HANDLER EXCEPTIONS
+
+class GatlingHandlerException(Exception):
+    pass
+
+class JUnitHandlerException(Exception):
+    pass
+
+class ZAProxyHandlerException(Exception):
+    pass
+
+class LocustHandlerException(Exception):
     pass

@@ -1,194 +1,206 @@
-# How to write a custom handler
+# Handler Developer Guide
 
-## Basics
+## What is a handler?
 
-### What is a handler? 
+A handler is a Python module inside `src/rmkbridge/` that teaches rmkbridge how to run a third-party test tool and interpret its results. Every handler does exactly two things:
 
-Handlers are Python files which encapsulate the logic to convert the results of 3rd party testing tools.  
-You can find the files of the currently supported 3 formats (JUnit, Gatling, ZAP) in the [package directory](./src/). 
+1. **Trigger keyword** (`run_<handler_name>`) — invoked to launch the external tool directly from Robot Framework and return the path to its output. 
+2. **Result parser** (`parse_results`) — called automatically by rmkbridge to convert that output into a structure Robot Framework can display.
 
-### Handler Configuration (YAML)
+Note: For the [Robotmk Bridge Plugin](https://github.com/elabit/robotmk-bridge-plugin), the result parser is the important part. The trigger keyword is only used when you want to run the external tool directly from Robot Framework.
 
-All handlers must be registered and configured in `config.yml` inside the [package directory](./src/).  
-A typical entry looks like:
+There are three built-in handlers: 
 
-```yaml
-rmkbridge.zap:
-  handler: ZAProxyHandler
-  keyword: run_zap
-  tags: 
-    - rmkbridge-zap
-  accepted_risk_level: 2
-  required_confidence_level: 1
+- [junit.py](src/rmkbridge/junit.py)
+- [gatling.py](src/rmkbridge/gatling.py), and 
+- [zap.py](src/rmkbridge/zap.py) 
+
+## The result contract
+
+`parse_results` must return a Python dict conforming to the [handler result specification](handler_result_specification.md). The required shape is:
+
+```python
+{
+    'name': 'My Suite',          # top-level suite name
+    'tags': ['my-tag'],          # optional; handler tags are usually set here
+    'tests': [
+        {
+            'name': 'My Test',   # test case name
+            'keywords': [
+                {
+                    'name': 'some step',   # keyword name
+                    'pass': True,          # bool — the only real pass/fail signal
+                    'messages': [],        # optional log lines shown in RF output
+                }
+            ]
+        }
+    ]
+}
 ```
 
-Explanation: 
+| Field      | Suite | Test case | Keyword |
+|------------|-------|-----------|---------|
+| `name`     | x     | x         | x       |
+| `pass`     |       |           | x       |
+| `keywords` |       | x         | (x)     |
+| `tags`     | (x)   | (x)       | (x)     |
+| `messages` |       |           | (x)     |
+| `elapsed`  |       |           | (x)     |
+| `setup`    | (x)   | (x)       |         |
+| `teardown` | (x)   | (x)       | (x)     |
+| `suites`   | (x)   |           |         |
+| `tests`    | (x)   |           |         |
+| `metadata` | (x)   |           |         |
 
-- `rmkbridge.zap`: The dictionary key must match the corresponding importable **module** (`import rmkbridge.zap`).
-  - `ZAProxyHandler` names the **handler class** instantiated from that module.
-  - `run_zap` is the Python function for the handler's **trigger keyword** to the tool.
-  - `rmkbridge-zap` tag(s) which should be applied to every test case (optional).
-  - If a handlers requires extra arguments, they can also be specified. 
+`x` = required · `(x)` = optional
 
-### Creation steps
+---
 
-The development of a custom handler is done in these four steps:
+## Example: writing a Locust handler
 
-1. Extend `rmkbridge.BaseHandler` and implement `parse_results` plus your trigger keyword `run_XXX`.
-2. Make your module discoverable (PYTHONPATH or installable package).
-3. Append your configuration with `python -m rmkbridge --add-config path/to/handler_config.yml`.
-4. Conform to the [handler result specification](handler_result_specification.md) when returning parsed suites.
-
-
-
-## Let's go 
-
-### Goal: A handler for Locust
-
-In this example, we will write a handler for [https://locust.io/](https://locust.io/), which is an open-source load-testing tool that lets you simulate large numbers of users to measure how your system performs under stress.
-
-Locust tests are defined in python files which look like following:
+We will write now a handler for [Locust](https://locust.io/), an open-source load testing tool.  
+In Locust you describe user behaviour in Python, point it at a host, and it hammers it with simulated traffic.  
+The results land in a CSV file that looks like this:
 
 ```
-from locust import HttpUser, task, between
-
-class QuickstartUser(HttpUser):
-    wait_time = between(5000, 15000)
-
-    @task
-    def index_page(self):
-        self.client.get("/")
-
+"Type","Name","Request Count","Failure Count",...
+"GET","/",10,0,...
+"POST","/",5,5,...
+"GET","/item",24,0,...
+"None","Aggregated",39,5,...
 ```
 
-Locust test results are .csv files which look like following:
+Each row is one endpoint. `Failure Count` (4th column) is the one we care about.
 
-```
-"Type","Name","Request Count","Failure Count","Median Response Time","Average Response Time","Min Response Time","Max Response Time","Average Content Size","Requests/s","Failures/s","50%","66%","75%","80%","90%","95%","98%","99%","99.9%","99.99%","99.999%","100%"
-"GET","/",10,0,72,75,66,89,2175,0.26,0.00,73,75,86,87,89,89,89,89,89,89,89,89
-"POST","/",5,5,300,323,288,402,157,0.13,0.13,300,330,330,400,400,400,400,400,400,400,400,400
-"GET","/item",24,0,80,79,67,100,2175,0.63,0.00,81,85,86,86,89,92,100,100,100,100,100,100
-"None","Aggregated",39,5,81,109,66,402,1916,1.03,0.13,81,86,87,89,300,330,400,400,400,400,400,400
-```
+We will build the handler in three stages, adding a feature and a round of tests at each step.
 
-### Fork & Clone the repository 
+### Before you start
 
-To contribute a handler to this project, first go to the [Project Github Page](https://github.com/elabit/robotmk-bridge) and click on **Fork**.  
-This will create a linked copy of the repository under your account.
+If you haven't already, follow [CONTRIBUTION.md](CONTRIBUTION.md) to fork and clone the repo, then set up your environment:
 
-Then clone your fork locally using `git clone https://github.com/<your-username>/robotmk-bridge.git` so you can work on the code.
-
-
-### Environment preparation
-
-First, let's create a Python3 virtual environment:
-
-```
-python3 -m venv .venv
-source .venv/bin/activate
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+pip install -e .
 ```
 
-Install the `robotmk-bridge` package:
+Installing with `-e .` means changes in `src/rmkbridge/` take effect immediately — no reinstalling needed.
 
+---
+
+## Stage 1 — the basic functionality
+
+### 1. Add an exception class
+
+Open [src/rmkbridge/errors.py](src/rmkbridge/errors.py) and add one line alongside the other handler exceptions:
+
+```python
+class LocustHandlerException(Exception):
+    pass
 ```
-pip install robotframework-robotmk-bridge
-```
 
-Let's start developing by creating a working folder
-````
-cd locustenv
-mkdir locusthandler
-cd locusthandler
-````
+Raising your own exception type (instead of a bare `Exception`) makes stack traces self-documenting.
 
+### 2. Create the handler module
 
-### Writing LocustHandler and unit tests
+Create `src/rmkbridge/locust.py`:
 
-Let's create `__init__.py`  to our `locustenv/locusthandler` folder. Next we can create `locusthandler.py` to `locustenv/locusthandler` folder with following content:
-
-```
-import json
+```python
 import csv
 
-from rmkbridge import BaseHandler
 from robot.api import logger
 
-from rmkbridge.errors import SubprocessException
-from rmkbridge.utils import run_command_line, validate_path
+from .base_handler import BaseHandler
+from .errors import LocustHandlerException, SubprocessException
+from .utils import run_command_line, validate_path
 
 
 class LocustHandler(BaseHandler):
 
-
     def run_locust(self, result_file, command, check_return_code=False, **env):
+        '''Run the Locust load testing tool via ``command``.
+
+        ``result_file`` is the path rmkbridge will read after Locust finishes.
+        Craft your ``command`` to write its stats CSV to exactly that path
+        (use Locust's ``--csv`` flag and derive the ``_stats.csv`` filename).
+
+        ``command`` is a shell string executed in a subprocess.
+
+        ``check_return_code`` — set to ``True`` while debugging to treat a
+        non-zero exit code as a failure. Leave it off for normal use: Locust
+        exits non-zero when requests fail, which would swallow real results.
+
+        Extra keyword arguments are forwarded as environment variables to the
+        subprocess.
+        '''
         try:
             output = run_command_line(command, check_return_code, **env)
         except SubprocessException as e:
-            raise LocustHandlerException(e) ## It is best practice to raise LocustHandlerException so we know that LocustHandler caused the error.
+            raise LocustHandlerException(e)
         logger.info(output)
-        logger.info('Result file: {}'.format(result_file))
+        logger.info(f'Result file: {result_file}')
         return result_file
 
     def parse_results(self, result_file):
         return self._transform_tests(validate_path(result_file).resolve())
 
-
     def _transform_tests(self, file):
+        test_cases = []
         with open(file, newline='') as csvfile:
-            reader = csv.DictReader(csvfile)
-            test_cases = []
-            for row in reader:
-                failure_count = row['Failure Count']
-                success = failure_count == '0'
-                keyword = {
-                    'name': " | ".join(row),
-                    'pass': success,
-                }                               
-                test_case = {
-                'name': 'Locust test case',
-                'keywords': [keyword]
-                }
-                test_cases.append(test_case)
-            test_suite = {
+            for row in csv.DictReader(csvfile):
+                if row['Type'] == 'None':
+                    continue
+                failure_count = int(row['Failure Count'])
+                test_cases.append({
+                    'name': f"{row['Type']} requests to {row['Name']}",
+                    'keywords': [{
+                        'name': f"{row['Type']} {row['Name']}",
+                        'pass': failure_count == 0,
+                        'messages': [f'{k}: {v}' for k, v in row.items()],
+                    }],
+                })
+        return {
             'name': 'Locust Scenario',
+            'tags': self._tags,
             'tests': test_cases,
-            }
-            return test_suite
-
-class LocustHandlerException(Exception):
-    pass
+        }
 ```
 
-  Method `run_locust` can be used from robot tests, and it executes the command which runs the locust tests. It returns a path to the locust test results, which is processed by method `parse_results`, which calls `_transform_tests` function which purpose is to transfer the locust result file into a format which can be seen in the Robot Framework log files. 
+💡 Implementation details - what did we do here?
 
-  Let's create a `locustenv/locusthandler/tests` folder. Then we write there test file `test_locust.py` with following content:
+1. **Imports**: We import necessary modules, including `csv` for reading CSV files
+2. **run_locust**: This method runs the Locust command in a subprocess and returns the path to the result file. It handles exceptions and logs output.
+3. **parse_results**: This method reads the result file and transforms it into the required structure using `_transform_tests`.
+4. **_transform_tests**: This method reads the CSV file, skips the aggregated row, and creates a list of test cases. Each test case contains the name, keywords, pass/fail status based on the failure count, and messages with details from the CSV
 
-```
-from unittest import TestCase
 
-from pathlib import Path
-from locusthandler import LocustHandler
+### 3. Register the handler
 
-class TestLocust(TestCase):
-    
-    def setUp(self):
-        config = {'handler': 'LocustHandler', 'keyword': 'run_locust', 'tags': 'LOCUST'}
-        self.handler = LocustHandler(config)
-        path = Path.cwd() / 'resources/requests.csv'
-        self.test_suite = self.handler.parse_results(path)
+Add an entry to [src/rmkbridge/config.yml](src/rmkbridge/config.yml), where all handlers are registered, including optional tags and other configuration:
 
-    def test_suite_has_four_cases(self):
-        self.assertEqual(len(self.test_suite['tests']),4)
-
-    def test_pass_is_true_when_failure_request_is_zero(self):
-        self.assertEqual(self.test_suite['tests'][0]['keywords'][0]['pass'], True)
-
-    def test_pass_is_false_when_failure_request_is_not_zero(self):
-        self.assertEqual(self.test_suite['tests'][1]['keywords'][0]['pass'], False)
+```yaml
+rmkbridge.locust:
+  handler: LocustHandler
+  keyword: run_locust
+  tags:
+    - rmkbridge-locust
 ```
 
+The key `rmkbridge.locust` must exactly match the importable module path (`import rmkbridge.locust`).
 
-Next we create `locustenv/locusthandler/resources` folder and add there test data file `requests.csv` which has the following:
+### 4. Write unit tests
+
+With unit tests we can verify the handler works without actually running Locust. The tests will call `parse_results` on a sample CSV and check the output structure.
+
+Create the test package `locust` under `tests/utest/` with two empty files:
+
+```
+tests/utest/locust/
+    __init__.py
+    test_basic_functionality.py
+```
+
+And add a sample CSV to `tests/resources/locust-example-stats.csv`:
 
 ```
 "Type","Name","Request Count","Failure Count","Median Response Time","Average Response Time","Min Response Time","Max Response Time","Average Content Size","Requests/s","Failures/s","50%","66%","75%","80%","90%","95%","98%","99%","99.9%","99.99%","99.999%","100%"
@@ -198,586 +210,256 @@ Next we create `locustenv/locusthandler/resources` folder and add there test dat
 "None","Aggregated",39,5,81,109,66,402,1916,1.03,0.13,81,86,87,89,300,330,400,400,400,400,400,400
 ```
 
-Now we can run unit tests from the `locustenv/locusthandler` folder with command 
+Now fill `tests/utest/locust/test_basic_functionality.py`:
 
-````
-python -m unittest tests/test_locust.py
-````
+```python
+from unittest import TestCase
+from unittest.mock import ANY, Mock, patch
 
-and all 3 tests should pass.
+from rmkbridge.locust import LocustHandler
+from rmkbridge.errors import LocustHandlerException
+from ..helpers import RESOURCES_PATH
+
+LOCUST_CSV = RESOURCES_PATH / 'locust-example-stats.csv'
+
+CONFIG = {
+    'handler': 'LocustHandler',
+    'keyword': 'run_locust',
+    'tags': ['rmkbridge-locust'],
+}
 
 
-### Configuring LocustHandler to Oxygen
+class LocustBasicTests(TestCase):
 
-Let's open the python interpreter by running `python` from the `locustenv` directory and check that we can import the locusthandler:
+    def setUp(self):
+        self.handler = LocustHandler(CONFIG)
+        self.suite = self.handler.parse_results(LOCUST_CSV)
 
+    def test_suite_has_four_cases(self):
+        self.assertEqual(len(self.suite['tests']), 3)
+
+    def test_get_request_passes_when_no_failures(self):
+        # First row: GET / — zero failures
+        self.assertTrue(self.suite['tests'][0]['keywords'][0]['pass'])
+
+    def test_post_request_fails_when_failures_exist(self):
+        # Second row: POST / — 5 failures
+        self.assertFalse(self.suite['tests'][1]['keywords'][0]['pass'])
+
+    @patch('rmkbridge.utils.subprocess')
+    def test_run_locust_invokes_subprocess(self, mock_subprocess):
+        mock_subprocess.run.return_value = Mock(returncode=0)
+        self.handler.run_locust('output.csv', 'locust --headless ...')
+        mock_subprocess.run.assert_called_once_with(
+            'locust --headless ...', capture_output=True, shell=True, env=ANY
+        )
+
+    @patch('rmkbridge.utils.subprocess')
+    def test_run_locust_raises_on_nonzero_when_check_enabled(self, mock_subprocess):
+        mock_subprocess.run.return_value = Mock(returncode=1)
+        with self.assertRaises(LocustHandlerException):
+            self.handler.run_locust('output.csv', 'locust ...', check_return_code=True)
+
+    @patch('rmkbridge.utils.subprocess')
+    def test_run_locust_returns_result_file(self, mock_subprocess):
+        mock_subprocess.run.return_value = Mock(returncode=0)
+        result = self.handler.run_locust('output.csv', 'locust ...')
+        self.assertEqual(result, 'output.csv')
 ```
-(locustenv) $ python
-Python 3.7.7 
-Type "help", "copyright", "credits" or "license" for more information.
->>> import locusthandler.locusthandler
->>>
+
+💡 Implementation details - what did we do here?
+
+1. **Setup**: We create a `LocustHandler` instance and parse the sample CSV file in the `setUp` method, so it's available for all tests.
+2. ** Test Cases**: We define several test methods to verify the functionality of the handler:
+   - `test_suite_has_four_cases`: Checks that the suite has three test cases (excluding the aggregated row).
+   - `test_get_request_passes_when_no_failures`: Verifies that a GET request with zero failures passes.
+   - `test_post_request_fails_when_failures_exist`: Verifies that a POST request with failures fails.
+   - `test_run_locust_invokes_subprocess`: Mocks the subprocess call to ensure that `run_locust` invokes it correctly.
+   - `test_run_locust_raises_on_nonzero_when_check_enabled`: Ensures that `run_locust` raises an exception when the subprocess returns a non-zero exit code and `check_return_code` is enabled.
+   - `test_run_locust_returns_result_file`: Confirms that `run_locust` returns the expected result file path.
+
+Run the suite from the project root:
+
+```bash
+pytest tests/utest/locust
 ```
 
-Running this should not produce any errors, and we can import file `locusthandler.py` from `/locusthandler` folder we created. [Read more about packaging python projects from here.](https://packaging.python.org/glossary/#term-import-package) Next we can exit the python intepreter (CTRL + D) and write following lines to the end of `lib/python3.7/site-packages/oxygen/config.yml`:
+All six tests should pass.
+
+Bonus Tipp: IN VS Code, the test functions show little "play" buttons in the gutter. 
+
+- Click one to run just that test, or click the "play" button at the top of the file to run all tests in that file.
+- Hold the "Alt" key while clicking to run the test in debug mode, which lets you set breakpoints and inspect variables. **Very useful!**
+
+---
+
+## Stage 2 — configurable failure threshold
+
+Failing the whole test when any single request fails is often too strict for load testing (when hundreds of requests are involved).  
+=> A `failure_percentage` would be fine to define the maximum tolerable share of failed requests per endpoint!
+
+### Update the handler
+
+In `src/rmkbridge/locust.py`, replace `_transform_tests` and add `_failure_threshold`:
+
+```python
+    def _transform_tests(self, file):
+        threshold = self._failure_threshold()
+        test_cases = []
+        with open(file, newline='') as csvfile:
+            for row in csv.DictReader(csvfile):
+                if row['Type'] == 'None':
+                    continue
+                failure_count = int(row['Failure Count'])
+                request_count = int(row['Request Count'])
+                actual_pct = (failure_count / request_count) * 100 if request_count > 0 else 0
+                test_cases.append({
+                    'name': f"{row['Type']} requests to {row['Name']}",
+                    'keywords': [{
+                        'name': f"{row['Type']} {row['Name']}",
+                        'pass': actual_pct <= threshold,
+                        'messages': [f'{k}: {v}' for k, v in row.items()],
+                    }],
+                })
+        return {
+            'name': 'Locust Scenario',
+            'tags': self._tags,
+            'tests': test_cases,
+        }
+    
+    def _failure_threshold(self):
+        pct = int(self._config.get('failure_percentage', 0))
+        if pct > 100:
+            logger.info('failure_percentage capped at 100')
+            return 100
+        return pct    
+```
+
+💡 Implementation details - what did we do here?
+
+1. New function **_failure_threshold**: This method retrieves the `failure_percentage` from the handler's configuration, defaults to 0 if not set, and caps it at 100. It logs a message if the value exceeds 100.
+2. Updated **_transform_tests**: The method now calculates the actual failure percentage for each request type and compares it against the threshold. The test case passes if the actual percentage is less than or equal to the threshold.
+
+### Register the default failure threshold
+
+Add the default `failure_percentage` in `src/rmkbridge/config.yml`:
 
 ```yaml
-locusthandler.locusthandler:
+rmkbridge.locust:
   handler: LocustHandler
   keyword: run_locust
-  tags: oxygen-locusthandler
-```
-
-Test your edit by running:
-
-```
-$ python -m oxygen --version
-```
-
-You shouldn't get any errors. If you do, check that your edits are valid [YAML](https://yaml.org/) syntax.
-
-### Install demoapp to run tests against
-
-[Next we we install and run demo-app that we run the locust tests against.](https://github.com/robotframework/WebDemo)
-
-Open up another terminal and run following commands:
-
-
-```
-git clone https://github.com/robotframework/WebDemo.git
-cd WebDemo
-python3 demoapp/server.py
-```
-
-### Running Locust with LocustHandler in Robot test
-
-First we install Locust to our locustenv virtualenv:
-
-```
-pip install locust
-```
-
-Then we add `locustfile.py` file to `locustenv/locusthandler` folder which contains the commands for the performance test:
-
-```
-from locust import HttpUser, task, between
-
-class QuickstartUser(HttpUser):
-    wait_time = between(5000, 15000)
-
-    @task
-    def index_page(self):
-        self.client.get("/")
-```
-
-
-
-Let's write `test.robot` file to `locustenv/locusthandler` folder which contains test case that runs locust from command line:
-
-```RobotFramework
-
-*** Settings ***
-Library   rmkbridge.RobotmkBridgeLibrary
-Library   OperatingSystem
-
-*** Variables ***
-${STATS_FILE}       ${CURDIR}/../example_stats.csv
-${FAILURE_FILE}     ${CURDIR}/../example_failures.csv
-${HISTORY_FILE}     ${CURDIR}/../example_stats_history.csv
-${LOCUSTFILEPATH}   ${CURDIR}/locustfile.py
-${LOCUSTCOMMAND}    locust -f ${LOCUSTFILEPATH} --headless --host http://localhost:7272 -u 5 -r 1 --run-time 1m --csv=example
-
-*** Keywords ***
-
-Remove csv file
-  [Arguments]             ${path}
-  Remove file             ${path}
-  File should not exist   ${path}
-
-Remove csv files
-  Remove csv file         ${STATS_FILE}
-  Remove csv file         ${FAILURE_FILE}
-  Remove csv file         ${HISTORY_FILE}
-
-
-*** Test Cases ***
-
-Performance test should pass
-  [Tags]                  performance-tests
-  Remove csv files
-  Run Locust
-    ...   ${STATS_FILE}
-    ...   ${LOCUSTCOMMAND}
-```
-
-
- We can run the test from `locustenv` folder by using command
-
-```
-robot --listener oxygen.listener --pythonpath . --variable LOCUSTFILEPATH:locusthandler/locustfile.py locusthandler/test.robot
-```
-
-The test should execute for about 60 seconds. After this you can see the statistics of the performance tests in `log.html` and `report.html`. 
-
-
-If the test case fails, check first that Oxygen's `config.yml` is correctly configured from the previous section. You can set variable `check_return_code` to "True" in order to get more specific logging:
-
-```RobotFramework
-
-*** Test Cases ***
-
-Performance test should pass
-  [Tags]                  performance-tests
-  Remove csv files
-  Run Locust
-    ...   ${STATS_FILE}
-    ...   ${LOCUSTCOMMAND}
-    ...   check_return_code=${True}
-```
-
-
-## Defining your own parameters
-
-In our first solution the Locust test case will fail if even one request fails during the performance testing. However this might not be the best way to determine was the performance test successfull or not. Let's implement a solution, where you can define `failure_percentage` , which is the highest percentage of failed request that is allowed in order that the test still passes.
-
-Let's define the value of `failure_percentage` in `/lib/python3.7/site-packages/oxygen/config.yml`:
-
-```
-locusthandler.locusthandler:
-  handler: LocustHandler
-  keyword: run_locust
-  tags: oxygen-locusthandler
+  tags:
+    - rmkbridge-locust
   failure_percentage: 20
 ```
 
+### Add tests
 
-Let's implement function, which returns the failure_percentage to `locustenv/locusthandler/locusthandler.py`:
+Add the following tests to `tests/utest/locust/test_basic_functionality.py`:
 
-```
-    def _get_treshold_failure_percentage(self):
-        failure_percentage = self._config.get('failure_percentage', None)
+```python
+    def test_threshold_defaults_to_zero(self):
+        self.assertEqual(self.handler._failure_threshold(), 0)
 
-        if failure_percentage is None:
-            print('No failure percentage configured, defaulting to 0')
-            return 0
+    def test_threshold_read_from_config(self):
+        config = {**CONFIG, 'failure_percentage': '10'}
+        self.assertEqual(LocustHandler(config)._failure_threshold(), 10)
 
-        failure_percentage = int(failure_percentage)
-
-        if failure_percentage > 100:
-            print('Failure percentage is configured too high, maximizing at 100')
-            return 100
-
-        return failure_percentage
-```
-and let's use it in `_transform_tests` function:
-
-```
-    def _transform_tests(self, file):
-        with open(file, newline='') as csvfile:
-            reader = csv.DictReader(csvfile)
-            test_cases = []
-            for row in reader:
-                failure_count = row['Failure Count']
-                request_count = row['Request Count']
-                failure_percentage = 100 * int(failure_count) / int(request_count)
-                treshold_failure_percentage = self._get_treshold_failure_percentage()
-                success = failure_percentage <= treshold_failure_percentage
-                keyword = {
-                    'name': " | ".join(row),
-                    'pass': success,
-                }                               
-                test_case = {
-                'name': 'Locust test case',
-                'keywords': [keyword]
-                }
-                test_cases.append(test_case)
-            test_suite = {
-            'name': 'Locust test suite, failure percentage {}'.format(treshold_failure_percentage),
-            'tests': test_cases,
-            }
-            return test_suite
+    def test_threshold_capped_at_100(self):
+        config = {**CONFIG, 'failure_percentage': '150'}
+        self.assertEqual(LocustHandler(config)._failure_threshold(), 100)
 ```
 
+💡 Implementation details - what did we do here? 
+
+1. **test_threshold_defaults_to_zero**: Verifies that the default failure threshold is 0 when not specified in the configuration.
+2. **test_threshold_read_from_config**: Checks that the failure threshold is correctly read from the configuration.
+3. **test_threshold_capped_at_100**: Ensures that the failure threshold is capped at 100 if a higher value is provided in the configuration.
 
 
-Next we can update the unit tests in `locusthandler/tests/test_locust.py` to test that the pass value is calculated correctly depending on the value of `failure_percentage`:
+---
 
-```
-from unittest import TestCase
+## Stage 3 — per-test override
 
-from pathlib import Path
-from locusthandler import LocustHandler
+A global threshold in `config.yml` is convenient, but load testing different parts of a system often calls for different tolerances. You can let the Robot Framework caller pass `failure_percentage` directly to `run_locust`, overriding the config value for that specific test case.
 
-class TestLocust(TestCase):
-    
-    def setUp(self):
-        config = {'handler': 'LocustHandler', 'keyword': 'run_locust', 'tags': 'LOCUST'}
-        self.handler = LocustHandler(config)
-        path = Path.cwd() / 'resources/requests.csv'
-        self.test_suite = self.handler.parse_results(path)
+### Update `locust.py`
 
-    def test_suite_has_four_cases(self):
-        self.assertEqual(len(self.test_suite['tests']),4)
-
-    def test_pass_is_true_when_failure_request_percentage_is_below_default_value(self):
-        config = config = {'handler': 'LocustHandler', 'keyword': 'run_locust', 'tags': 'LOCUST', 'failure_percentage': '10'}
-        handler = LocustHandler(config)
-        path = Path.cwd() / 'resources/requests.csv'
-        test_suite = handler.parse_results(path)
-        self.assertEqual(self.test_suite['tests'][0]['keywords'][0]['pass'], True)
-
-    def test_pass_is_true_when_failure_request_percentage_is_default_value(self):
-        self.assertEqual(self.test_suite['tests'][2]['keywords'][0]['pass'], True)
-
-    def test_pass_is_false_when_failure_request_percentage_is_above_default_value(self):
-        self.assertEqual(self.test_suite['tests'][1]['keywords'][0]['pass'], False)
-
-    def test_failure_percentage_max_amount_is_one_hundred(self):
-        config = config = {'handler': 'LocustHandler', 'keyword': 'run_locust', 'tags': 'LOCUST', 'failure_percentage': '101'}
-        handler = LocustHandler(config)
-        failure_percentage = handler._get_treshold_failure_percentage()
-        self.assertEqual(failure_percentage, 100)
-```
-
-Now the unit tests should pass, run the tests from `locustenv/locusthandler` folder with command:
-
-````
-python -m unittest tests/test_locust.py
-````
-
-And we can also try out the robot tests using the new .yaml configuration. Run the tests from `locustenv` folder by using command
-
-```
-robot --listener oxygen.listener --pythonpath . --variable LOCUSTFILEPATH:locusthandler/locustfile.py locusthandler/test.robot
-```
-
-## Adding failure percentage as an robot test parameter
-
-Our current solution works quite nicely, but let's imagine a situation where we run the performance tests on different parts of the software, where we wan't to determine different values for `failure_percentage`. 
-
-Let's change the functionality of `locusthandler/locusthandler.py`:
-
-```
-import json
-import csv
-
-from rmkbridge import BaseHandler
-from robot.api import logger
-
-from rmkbridge.errors import SubprocessException
-from rmkbridge.utils import run_command_line, validate_path
-
-
-class LocustHandler(BaseHandler):
-
+```python
     def run_locust(self, result_file, command, check_return_code=False, failure_percentage=None, **env):
         try:
             output = run_command_line(command, check_return_code, **env)
         except SubprocessException as e:
-            raise LocustHandlerException(e) ## It is best practice to raise LocustHandlerException so we know that LocustHandler caused the error.
+            raise LocustHandlerException(e)
         logger.info(output)
-        logger.info('Result file: {}'.format(result_file))
-        dictionary = dict()
-        dictionary['result_file'] = result_file
-        dictionary['failure_percentage'] = failure_percentage
-        return dictionary
+        logger.info(f'Result file: {result_file}')
+        return result_file, failure_percentage
 
-    def parse_results(self, dictionary):
-        result_file = dictionary['result_file']
-        failure_percentage = dictionary['failure_percentage']
-        if failure_percentage is None:
-            failure_percentage = self._config.get('failure_percentage', None)
-        treshold_failure_percentage = self._get_treshold_failure_percentage(failure_percentage)
-        return self._transform_tests(validate_path(result_file).resolve(), treshold_failure_percentage)
+    def parse_results(self, result_file, failure_percentage=None):
+        effective_threshold = failure_percentage if failure_percentage is not None else self._failure_threshold()
+        threshold = min(effective_threshold, 100)
+        return self._transform_tests(validate_path(result_file).resolve(), threshold)
 
-    def _transform_tests(self, file, treshold_failure_percentage):
+    def _transform_tests(self, file, threshold):
+        test_cases = []
         with open(file, newline='') as csvfile:
-            reader = csv.DictReader(csvfile)
-            test_cases = []
-            for row in reader:
-                failure_count = row['Failure Count']
-                request_count = row['Request Count']
-                failure_percentage = 100 * int(failure_count) / int(request_count)
-                success = failure_percentage <= treshold_failure_percentage
-                keyword = {
-                    'name': " | ".join(row),
-                    'pass': success,
-                }                               
-                test_case = {
-                'name': 'Locust test case',
-                'keywords': [keyword]
-                }
-                test_cases.append(test_case)
-            test_suite = {
-            'name': 'Locust test suite, failure percentage {}'.format(treshold_failure_percentage),
+            for row in csv.DictReader(csvfile):
+                if row['Type'] == 'None':
+                    continue
+                failure_count = int(row['Failure Count'])
+                request_count = int(row['Request Count'])
+                actual_pct = (failure_count / request_count) * 100 if request_count > 0 else 0
+                test_cases.append({
+                    'name': f"{row['Type']} requests to {row['Name']}",
+                    'keywords': [{
+                        'name': f"{row['Type']} {row['Name']}",
+                        'pass': actual_pct <= threshold,
+                        'messages': [f'{k}: {v}' for k, v in row.items()],
+                    }],
+                })
+        return {
+            'name': 'Locust Scenario',
+            'tags': self._tags,
             'tests': test_cases,
-            }
-            return test_suite
-
-    def _get_treshold_failure_percentage(self, failure_percentage):
-        if failure_percentage is None:
-            print('No failure percentage configured, defaulting to 0')
-            return 0
-
-        failure_percentage = int(failure_percentage)
-
-        if failure_percentage > 100:
-            print('Failure percentage is configured too high, maximizing at 100')
-            return 100
-
-        return failure_percentage
-
-class LocustHandlerException(Exception):
-    pass
+        }
 ```
 
-Notice that we return an dictionary object instead of result file in the `run_locust` method. This way we can use the `failure_percentage` value if it is defined. If it's not defined we will use the value what is defined in `/lib/python3.7/site-packages/oxygen/config.yml`. Now we can rewrite the robot tests in `locusthandler/test.robot`, one assigns the value from the parameter and the second test doesn't: 
+💡 Implementation details - what did we do here?
 
-```RobotFramework
-*** Test Cases ***
+1. **run_locust**: Now returns a tuple `(result_file, failure_percentage)` to allow passing the threshold to `parse_results`.
+2. **parse_results**: Accepts an optional `failure_percentage` argument. If provided, it overrides the configuration value for that specific test case. The effective threshold is capped at 100.
+3. **_transform_tests**: Now takes the threshold as a parameter, allowing it to be set per test case.
 
-Critical performance test
-  [Tags]                  performance-tests
-  Remove csv files
-  Run Locust
-    ...   ${STATS_FILE}
-    ...   ${LOCUSTCOMMAND}
-    ...   failure_percentage=${1}
+### Add unit tests the failure percentage override
 
-
-Normal performance test
-  [Tags]                  performance-tests
-  Remove csv files
-  Run Locust
-    ...   ${STATS_FILE}
-    ...   ${LOCUSTCOMMAND}
-```
-
-In this case the `Critical performance test` could be a performance test for a system where the consequences of failure is much larger: Thus we define the failure_percentage to 1%. In the `Normal performance test` we use the value that is defined in the `/lib/python3.7/site-packages/oxygen/config.yml`.
-
-Run the tests in `locustenv/` folder with 
-
-```
-robot --listener oxygen.listener --pythonpath . --variable LOCUSTFILEPATH:locusthandler/locustfile.py locusthandler/test.robot
-```
-
-However now when you run the unit tests from `locusthandler/` folder they fail:
-
-```
-python -m unittest tests/test_locust.py
-```
-
-Because we changed the functionality to use dictionary instead of result file path. Let's update the test case setup in `tests/test_locust.py` and write a method `dictionary_with_result_file`:
-
-```
-    def dictionary_with_result_file(self):
-        path = Path.cwd() / 'resources/requests.csv'
-        dictionary = dict()
-        dictionary['result_file'] = path
-        return dictionary
-
-    def setUp(self):
-        config = {'handler': 'LocustHandler', 'keyword': 'run_locust', 'tags': 'LOCUST'}
-        self.handler = LocustHandler(config)
-        dictionary = self.dictionary_with_result_file()
-        dictionary['failure_percentage'] = None
-        self.test_suite = self.handler.parse_results(dictionary)
-```
-
-and run tests again. Still two test cases fail. This is because the `_get_treshold_failure_percentage` has an argument now instead of reading the value from the config. Let's update the failing test cases: 
-
-```
-    def test_pass_is_true_when_failure_request_percentage_is_below_default_value(self):
-        config = config = {'handler': 'LocustHandler', 'keyword': 'run_locust', 'tags': 'LOCUST'}
+```python
+    def test_parse_results_uses_parameter_over_config(self):
+        # POST / has 100% failure rate; threshold=100 (param) overrides config 70 → should pass
+        config = {**CONFIG, 'failure_percentage': '70'}
         handler = LocustHandler(config)
-        dictionary = self.dictionary_with_result_file()
-        dictionary['failure_percentage'] = 10
-        test_suite = handler.parse_results(dictionary)
-        self.assertEqual(self.test_suite['tests'][0]['keywords'][0]['pass'], True)
+        suite = handler.parse_results(str(LOCUST_CSV), 100)
+        post_test = suite['tests'][1]['keywords'][0]
+        self.assertTrue(post_test['pass'])
 
-    def test_failure_percentage_max_amount_is_one_hundred(self):
-        failure_percentage = self.handler._get_treshold_failure_percentage(101)
-        self.assertEqual(failure_percentage, 100)
+    def test_parse_results_falls_back_to_config(self):
+        # POST / has 100% failure rate; threshold=100 from config (param=None) → should pass
+        config = {**CONFIG, 'failure_percentage': '100'}
+        handler = LocustHandler(config)
+        suite = handler.parse_results(str(LOCUST_CSV), None)
+        post_test = suite['tests'][1]['keywords'][0]
+        self.assertTrue(post_test['pass'])
 ```
 
-Now all tests should pass. Let's add two more test cases to see that the `failure_precentage` is set correctly from the parameter or config file.
+---
 
-```
-    def test_parse_results_takes_failure_percentage_from_parameter_prior_to_config(self):
-        config = {'handler': 'LocustHandler', 'keyword': 'run_locust', 'tags': 'LOCUST', 'failure_percentage': '70'}
-        self.handler = LocustHandler(config)
-        dictionary = self.dictionary_with_result_file()
-        dictionary['failure_percentage'] = 75
-        test_suite = self.handler.parse_results(dictionary)
-        self.assertEqual(test_suite['name'], 'Locust test suite, failure percentage 75')
+## Checklist before opening a PR
 
-    def test_parse_results_takes_failure_percentage_correctly_from_config(self):
-        config = {'handler': 'LocustHandler', 'keyword': 'run_locust', 'tags': 'LOCUST', 'failure_percentage': '70'}
-        self.handler = LocustHandler(config)
-        dictionary = self.dictionary_with_result_file()
-        dictionary['failure_percentage'] = None
-        test_suite = self.handler.parse_results(dictionary)
-        self.assertEqual(test_suite['name'], 'Locust test suite, failure percentage 70')
-```
+- [ ] Handler at `src/rmkbridge/locust.py` — relative imports, subclasses `BaseHandler`
+- [ ] `LocustHandlerException` added to `src/rmkbridge/errors.py`
+- [ ] Entry added to `src/rmkbridge/config.yml` with key `rmkbridge.locust`
+- [ ] Sample result file in `tests/resources/`
+- [ ] Unit tests in `tests/utest/locust/` covering parse logic, subprocess mocking, and threshold behaviour
+- [ ] `pytest tests/utest/` passes without errors or warnings
+- [ ] `parse_results` output validated against [handler_result_specification.md](handler_result_specification.md)
 
-All tests should pass. Now we have completed an LocustHandler with unit tests which test the most important functionalities.
-
-
-
-## How to package your project
-
-Let's package our project in the same virtual environment . Add necessary files defined in this [tutorial](https://packaging.python.org/) to `locustenv` folder and add following line yo your `setup.py` file in the `setuptools.setup() object`:
-
-```
-    install_requires=[
-           'robotframework-oxygen>=0.1',
-           'locust>=1.1',
-      ],
-```
-
-So that Oxygen including it's dependencies and Locust will be installed when your handler is installed. Next you can run following command from `locustenv` folder:
-
-```
-pip install wheel
-python setup.py bdist_wheel
-```
-
-Which will create you a `locustenv/dist` folder. Next we will ensure that the installation works by creating another virtualenv. Open up another terminal, go backwards with `cd ..` same path where `locustenv` is and run following commands:
-
-```
-python3 -m venv packagenv
-source packagenv/bin/activate
-pip install locustenv/dist/NAME-OF-YOUR-PACKAGE.whl
-```
-
-You should now have a version of locusthandler in your `packagenv` environment. Let's verify this by opening python intepreter:
-
-```
-$ python
-Python 3.7.7 
-Type "help", "copyright", "credits" or "license" for more information.
->>> import locusthandler.locusthandler
->>>
-```
-
-Which should succeed. Exit intepreter with CTRL+ D. Next we can add following to the `packagenv/lib/python3.7/site-packages/oxygen/config.yml` file:
-
-```
-locusthandler.locusthandler:
-  handler: LocustHandler
-  keyword: run_locust
-  tags: oxygen-locusthandler
-  failure_percentage: 20
-```
-
-
- Next let's run the robot test case to make sure that it works. Next let's copy `test.robot` and `locustfile.py` files to `packagenv/` folder so that we can run them easily from our new environment. Make the following changes to the variables in `test.robot`:
-
-```RobotFramework
-*** Variables ***
-${STATS_FILE}       ${CURDIR}/example_stats.csv
-${FAILURE_FILE}     ${CURDIR}/example_failures.csv
-${HISTORY_FILE}     ${CURDIR}/example_stats_history.csv
-```
-
-Now we can run the robot tests from `packagenv/` folder with command:
-
-```
-robot --listener oxygen.listener --pythonpath . test.robot
-```
-
-And the tests should run normally. Now we have verified that the packaging has been done correctly.  
-
-
-## Improving the test result report
-
-Our locusthandler works fine, but we could make the test results more clear. Let's change the `transform_tests` method of `locusthandler.py` to make more clear test suite and keyword names, and show the performance test results as keyword messages:
-
-```
-    def _transform_tests(self, file, treshold_failure_percentage):
-        with open(file, newline='') as csvfile:
-            reader = csv.DictReader(csvfile)
-            test_cases = []
-            for row in reader:
-                messages = []
-                for element in row:
-                    messages.append('{}: {}'.format(element, row[element]))
-                failure_count = row['Failure Count']
-                request_count = row['Request Count']
-                failure_percentage = 100 * int(failure_count) / int(request_count)
-                success = failure_percentage <= treshold_failure_percentage
-                keyword_name = '{} requests with {} failures '.format(request_count, failure_count)
-                keyword = {
-                    'name': keyword_name,
-                    'pass': success,
-                    'messages': messages,
-                }
-                type_of_request = row['Type']
-                path = row['Name']
-                test_case_name = 'Testing {} requests to path {}'.format(type_of_request, path)
-                if path == 'Aggregated':
-                    test_case_name = 'Aggragated results of all Locust test cases:'              
-                test_case = {
-                'name': test_case_name,
-                'keywords': [keyword]
-                }
-                test_cases.append(test_case)
-            test_suite = {
-            'name': 'Locust test case, failure percentage {}'.format(treshold_failure_percentage),
-            'tests': test_cases,
-            }
-            return test_suite
-```
-
-Now run the robot tests again from `locustenv/` folder with 
-
-```
-robot --listener oxygen.listener --pythonpath . --variable LOCUSTFILEPATH:locusthandler/locustfile.py locusthandler/test.robot
-```
-
-And see the new test format in the generated `log.html` file.
-
-Let's run the unit tests from `locustenv/locusthandler` folder:
-
-```
-python -m unittest tests/test_locust.py
-```
-
- We notice that two fail because we changed the name of test suite. Let's update the assert statements of the failing tests:
-
-```
-    def test_parse_results_takes_failure_percentage_from_parameter_prior_to_config(self):
-        config = {'handler': 'LocustHandler', 'keyword': 'run_locust', 'tags': 'LOCUST', 'failure_percentage': '70'}
-        self.handler = LocustHandler(config)
-        dictionary = self.dictionary_with_result_file()
-        dictionary['failure_percentage'] = 75
-        test_suite = self.handler.parse_results(dictionary)
-        self.assertEqual(test_suite['name'], 'Locust test case, failure percentage 75')
-
-    def test_parse_results_takes_failure_percentage_correctly_from_config(self):
-        config = {'handler': 'LocustHandler', 'keyword': 'run_locust', 'tags': 'LOCUST', 'failure_percentage': '70'}
-        self.handler = LocustHandler(config)
-        dictionary = self.dictionary_with_result_file()
-        dictionary['failure_percentage'] = None
-        test_suite = self.handler.parse_results(dictionary)
-        self.assertEqual(test_suite['name'], 'Locust test case, failure percentage 70')
-```
- 
-And we are done! 
-
-# Teardown
-
-If you wish to delete your virtual environment do following: 
-
-```
-deactivate
-rm -rf locustenv
-```
-
-And shutdown the demo-app which was tested by locust with CTRL+D. You can also deactivate and delete `packagenv` virtual environment if you wish.
-
-
-## Push 
-
-Make changes in your clone, push them to your fork, and open a **pull request** to propose your changes to the original project.
-
+Once all boxes are ticked, push your branch and open a pull request. See [CONTRIBUTION.md](CONTRIBUTION.md) for the Git workflow.
