@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/elabit/robotmk-bridge/compare/v0.2.0...v0.3.0) (2026-06-25)
+
+
+### 🎉 New Features
+
+* locusthandler, RF7 support ([#38](https://github.com/elabit/robotmk-bridge/issues/38)) ([71dee93](https://github.com/elabit/robotmk-bridge/commit/71dee93e5667fbb76dfaafe297b358a9652c8c5f))
+
 ## [0.2.0](https://github.com/elabit/robotmk-bridge/compare/v0.1.2...v0.2.0) (2026-04-27)
 
 
