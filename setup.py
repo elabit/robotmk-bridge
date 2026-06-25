@@ -8,9 +8,8 @@ SRC = path_join(CURDIR, 'src')
 with open(path_join(SRC, 'rmkbridge', 'version.py')) as f:
     exec(f.read())
 
-KEYWORDS = ('robotframework testing testautomation acceptancetesting atdd bdd'
-            'reporting testreporting robotmk checkmk syntheticmonitoring junit'
-            'gatling' 'zap' 'cypress' 'xunit')
+KEYWORDS = ('robotframework testing testautomation acceptancetesting atdd bdd reporting testreporting robotmk checkmk syntheticmonitoring junit'
+            'gatling zap cypress xunit')
 
 SHORT_DESC = ('RobotmkBridge integrates the results of arbitrary testing tools into Checkmk.')              
 

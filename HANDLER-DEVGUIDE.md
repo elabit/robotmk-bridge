@@ -468,5 +468,6 @@ A global threshold in `config.yml` is convenient, but load testing different par
 - [ ] Unit tests in `tests/utest/locust/` covering parse logic, subprocess mocking, and threshold behaviour
 - [ ] `pytest tests/utest/` passes without errors or warnings
 - [ ] `parse_results` output validated against [handler_result_specification.md](handler_result_specification.md)
+- [ ] Add yout handler to the list of supported handlers in `README.md`
 
 Once all boxes are ticked, push your branch and open a pull request. See [CONTRIBUTION.md](CONTRIBUTION.md) for the Git workflow.
