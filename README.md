@@ -23,6 +23,7 @@ In both cases, the goal is to integrate **any test results** into [Checkmk](http
     - [Gatling](https://gatling.io/)
     - [OWASP ZAP](https://www.zaproxy.org/)
     - [Locust](https://locust.io/)
+    - [Tircentis Tosca](https://www.tricentis.com/de/plattform/automate-continuous-testing-tosca) (Extended Report, ADO.Net DataSet)
   - Lets you implement **custom handlers** by extending `rmkbridge.BaseHandler`.
 - Robot Framework 6.x and 7.x supported
 - Working modes 

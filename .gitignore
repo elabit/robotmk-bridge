@@ -19,3 +19,4 @@ example/results_robot_output.xml
 example/results.json
 .vscode
 /result
+tests/resources/customer

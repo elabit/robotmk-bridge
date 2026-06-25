@@ -41,3 +41,6 @@ class ZAProxyHandlerException(Exception):
 
 class LocustHandlerException(Exception):
     pass
+
+class ToscaExtHandlerException(Exception):
+    pass
