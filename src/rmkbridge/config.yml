@@ -13,4 +13,8 @@ rmkbridge.zap:
   tags: rmkbridge-zap
   accepted_risk_level: 2
   required_confidence_level: 1
-
+rmkbridge.locust:
+  handler: LocustHandler
+  keyword: run_locust
+  tags:
+    - rmkbridge-locust
