@@ -18,3 +18,8 @@ rmkbridge.locust:
   keyword: run_locust
   tags:
     - rmkbridge-locust
+rmkbridge.tosca_ext:
+  handler: ToscaExtHandler
+  keyword: run_tosca_ext
+  tags:
+    - rmkbridge-tosca-ext
