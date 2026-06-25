@@ -76,4 +76,4 @@ class LocustBasicTests(TestCase):
     def test_run_locust_returns_result_file(self, mock_subprocess):
         mock_subprocess.run.return_value = Mock(returncode=0)
         result = self.handler.run_locust('output.csv', 'locust ...')
-        self.assertEqual(result, 'output.csv')
+        self.assertTrue('output.csv' in result)

@@ -166,7 +166,7 @@ class LocustHandler(BaseHandler):
         }
 ```
 
-💡 Implementation details - what did we do here?
+💡 Implementation details:
 
 1. **Imports**: We import necessary modules, including `csv` for reading CSV files
 2. **run_locust**: This method runs the Locust command in a subprocess and returns the path to the result file. It handles exceptions and logs output.
@@ -267,7 +267,7 @@ class LocustBasicTests(TestCase):
         self.assertEqual(result, 'output.csv')
 ```
 
-💡 Implementation details - what did we do here?
+💡 Implementation details:
 
 1. **Setup**: We create a `LocustHandler` instance and parse the sample CSV file in the `setUp` method, so it's available for all tests.
 2. ** Test Cases**: We define several test methods to verify the functionality of the handler:
@@ -335,7 +335,7 @@ In `src/rmkbridge/locust.py`, replace `_transform_tests` and add `_failure_thres
         return pct    
 ```
 
-💡 Implementation details - what did we do here?
+💡 Implementation details:
 
 1. New function **_failure_threshold**: This method retrieves the `failure_percentage` from the handler's configuration, defaults to 0 if not set, and caps it at 100. It logs a message if the value exceeds 100.
 2. Updated **_transform_tests**: The method now calculates the actual failure percentage for each request type and compares it against the threshold. The test case passes if the actual percentage is less than or equal to the threshold.
@@ -370,7 +370,7 @@ Add the following tests to `tests/utest/locust/test_basic_functionality.py`:
         self.assertEqual(LocustHandler(config)._failure_threshold(), 100)
 ```
 
-💡 Implementation details - what did we do here? 
+💡 Implementation details:
 
 1. **test_threshold_defaults_to_zero**: Verifies that the default failure threshold is 0 when not specified in the configuration.
 2. **test_threshold_read_from_config**: Checks that the failure threshold is correctly read from the configuration.
@@ -424,7 +424,7 @@ A global threshold in `config.yml` is convenient, but load testing different par
         }
 ```
 
-💡 Implementation details - what did we do here?
+💡 Implementation details:
 
 1. **run_locust**: Now returns a tuple `(result_file, failure_percentage)` to allow passing the threshold to `parse_results`.
 2. **parse_results**: Accepts an optional `failure_percentage` argument. If provided, it overrides the configuration value for that specific test case. The effective threshold is capped at 100.
@@ -449,6 +449,13 @@ A global threshold in `config.yml` is convenient, but load testing different par
         post_test = suite['tests'][1]['keywords'][0]
         self.assertTrue(post_test['pass'])
 ```
+
+💡 Implementation details:
+
+1. **test_parse_results_uses_parameter_over_config**: Verifies that when a `failure_percentage` is provided as a parameter, it overrides the configuration value for that specific test case.
+2. **test_parse_results_falls_back_to_config**: Ensures that when no `failure_percentage` parameter is provided, the handler falls back to using the configuration value.
+
+
 
 ---
 
