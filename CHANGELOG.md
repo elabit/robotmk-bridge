@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/elabit/robotmk-bridge/compare/v0.3.0...v0.4.0) (2026-06-25)
+
+
+### 🎉 New Features
+
+* Locust / Documentation ([#41](https://github.com/elabit/robotmk-bridge/issues/41)) ([4f75774](https://github.com/elabit/robotmk-bridge/commit/4f75774a8dcdc33a88336c9377ac34513f41f331))
+
 ## [0.3.0](https://github.com/elabit/robotmk-bridge/compare/v0.2.0...v0.3.0) (2026-06-25)
 
 
