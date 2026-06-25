@@ -22,6 +22,7 @@ In both cases, the goal is to integrate **any test results** into [Checkmk](http
     - [JUnit](https://junit.org/junit5/) 
     - [Gatling](https://gatling.io/)
     - [OWASP ZAP](https://www.zaproxy.org/)
+    - [Locust](https://locust.io/)
   - Lets you implement **custom handlers** by extending `rmkbridge.BaseHandler`.
 - Robot Framework 6.x and 7.x supported
 - Working modes 
@@ -58,7 +59,7 @@ This mode consists of two steps:
 1. Running the tool in Robot Framework via `Run` keyword
 2. Running the Bridge-Listener
 
-#### Step 1: Running the tool in Robot Framework
+#### 1.1: Running the tool directly in Robot Framework
 
 Each supported external test tool comes with a special **trigger keyword** `Run <tool>` to run the tool from inside Robot Framework.
 Depending on the Handler, the keywords support individual arguments.
@@ -90,7 +91,7 @@ ZAP scan finds no blockers
     Custom Keyword 2
 ```
 
-#### Step 2: Running the Listener
+#### 1.2: Running the Listener
 
 After the suite execution, run the suite with the Robotmk Bridge **listener** so the external reports are injected into the output:
 
@@ -109,6 +110,8 @@ Note: you should use only 1 trigger keyword per test case.
 
 ## Option 2: Command Line Usage to convert existing results
 
+💡 This is the mode used by the [Robotmk Bridge Plugin](https://github.com/elabit/robotmk-bridge-plugin) for Checkmk. 
+
 Use the CLI when you need to convert tool reports without running Robot Framework suites:
 
 ```bash
@@ -121,8 +124,6 @@ python -m rmkbridge rmkbridge.junit --result-file path/to/results.xml
   - `python -m rmkbridge --print-config`
   - `python -m rmkbridge --add-config path/to/custom_handler.yml`
   - `python -m rmkbridge --reset-config`
-
-
 
 ## Keyword Documentation
 
